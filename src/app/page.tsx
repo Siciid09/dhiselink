@@ -1,6 +1,8 @@
+// File Path: app/page.tsx
+
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, FC } from 'react';
 import { motion, useAnimation, AnimatePresence, animate } from 'framer-motion';
 import { useInView } from 'react-intersection-observer';
 import {
@@ -44,36 +46,6 @@ const sectorsData = [
         ]
     },
     {
-        name: "Mechanical & Industrial",
-        icon: <GitBranch className="text-gray-500"/>,
-        description: "Powering industry, manufacturing, and transport through innovative machinery and systems design.",
-        imageUrls: [
-            "https://images.unsplash.com/photo-1617859047441-21c6a2916f1d?q=80&w=800&auto=format&fit=crop",
-            "https://images.unsplash.com/photo-1555659853-24e58b9f1c43?q=80&w=800&auto=format&fit=crop",
-            "https://images.unsplash.com/photo-1629479323419-4e7a77213a30?q=80&w=800&auto=format&fit=crop"
-        ],
-        stats: [
-            { subField: "Industrial Machinery", opportunities: 70 },
-            { subField: "Automotive Technology", opportunities: 50 },
-            { subField: "HVAC & Plant Systems", opportunities: 30 },
-        ]
-    },
-    {
-        name: "Electrical & Energy",
-        icon: <Zap className="text-yellow-500"/>,
-        description: "Developing the national grid, renewable energy, and electronic systems for a brighter future.",
-        imageUrls: [
-            "https://images.unsplash.com/photo-1518152006812-edab29b069ac?q=80&w=800&auto=format&fit=crop",
-            "https://images.unsplash.com/photo-1466611653911-95081537e5b7?q=80&w=800&auto=format&fit=crop",
-            "https://images.unsplash.com/photo-1581092916322-3c34a2e28892?q=80&w=800&auto=format&fit=crop"
-        ],
-        stats: [
-            { subField: "Power Grid Development", opportunities: 80 },
-            { subField: "Renewable Energy Solutions", opportunities: 60 },
-            { subField: "Telecommunications", opportunities: 40 },
-        ]
-    },
-    {
         name: "Software & Digital Systems",
         icon: <Code className="text-green-500"/>,
         description: "Building the digital backbone of the nation, from mobile applications and fintech to cloud computing.",
@@ -87,21 +59,6 @@ const sectorsData = [
             { subField: "Cybersecurity & Networks", opportunities: 70 },
             { subField: "Cloud & DevOps", opportunities: 60 },
         ]
-    },
-    {
-        name: "Agro & Environmental Engineering",
-        icon: <Globe2 className="text-teal-500"/>,
-        description: "Innovating in sustainable agriculture, water resource management, and environmental conservation.",
-        imageUrls: [
-            "https://images.unsplash.com/photo-1597916819322-359d7b385a53?q=80&w=800&auto=format&fit=crop",
-            "https://images.unsplash.com/photo-1492496913980-501348b61469?q=80&w=800&auto=format&fit=crop",
-            "https://images.unsplash.com/photo-1563242182-3532408ac7b9?q=80&w=800&auto=format&fit=crop"
-        ],
-        stats: [
-            { subField: "Water Resource Management", opportunities: 95 },
-            { subField: "AgriTech & Food Security", opportunities: 85 },
-            { subField: "Environmental Solutions", opportunities: 55 },
-        ]
     }
 ];
 
@@ -114,9 +71,9 @@ const heroImages = [
 
 const heroContent = [
     { tagline: "Engineering a Stronger Nation", title: "Powering National Infrastructure.", subtitle: "Connecting engineers, managers, and planners to the projects that shape our cities and supply lines." },
-    { tagline: "The Digital Revolution is Here", title: "Innovate with Somali Tech Talent.", subtitle: "Find the nation's brightest developers, IT experts, and digital innovators to build a thriving digital economy." },
+    { tagline: "The Digital Revolution is Here", title: "Innovate with Somaliland Tech Talent.", subtitle: "Find the nation's brightest developers, IT experts, and digital innovators to build a thriving digital economy." },
     { tagline: "Designing Our Future Cities", title: "Shaping Tomorrow's Urban Landscapes.", subtitle: "From sustainable architecture to smart city planning, discover the talent defining our urban future." },
-    { tagline: "Sustainable Energy for All", title: "Leading the Charge in Green Energy.", subtitle: "Explore opportunities in renewable energy and connect with experts driving Somalia's green transition." }
+    { tagline: "Sustainable Energy for All", title: "Leading the Charge in Green Energy.", subtitle: "Explore opportunities in renewable energy and connect with experts driving Somaliland's green transition." }
 ];
 
 const opportunities = [
@@ -126,13 +83,13 @@ const opportunities = [
 ];
 
 const testimonialsData = [
-   { name: 'Asha Hussein', role: 'Project Manager, Ministry of Public Works', quote: "Dhiselink is the critical link we needed. It connects public sector projects with the private sector expertise required to execute them efficiently. It's accelerating national progress." },
-   { name: 'Dr. Ahmed Jama', role: 'Director, National Planning Institute', quote: "Our graduates have a direct bridge to impactful careers. Dhiselink is vital for retaining our nation's top talent." },
+   { name: 'Asha Hussein', role: 'Project Manager, Ministry of Public Works', quote: "Dhiselink is the critical link we needed. It connects public sector projects with the private sector expertise required to execute them efficiently. It&apos;s accelerating national progress." },
+   { name: 'Dr. Ahmed Jama', role: 'Director, National Planning Institute', quote: "Our graduates have a direct bridge to impactful careers. Dhiselink is vital for retaining our nation&apos;s top talent." },
    { name: 'Omar Yusuf', role: 'Founder, Saafi Solar', quote: "Through the platform, we found two brilliant engineers who are now core members of our startup. The talent here is exceptional." }
 ];
 
 const faqData = [
-    { q: "Who can join Dhiselink?", a: "Dhiselink is for professionals, companies, NGOs, and government bodies involved in building Somalia's future across all development sectors." },
+    { q: "Who can join Dhiselink?", a: "Dhiselink is for professionals, companies, NGOs, and government bodies involved in building Somaliland&apos;s future across all development sectors." },
     { q: "Is this platform only for engineers?", a: "Not at all. We serve architects, planners, project managers, policy makers, tech innovators, and many other professions essential for national development." },
     { q: "How are opportunities verified?", a: "Our team verifies all institutions and postings to ensure they are legitimate and meet our quality standards, providing a safe and reliable environment." },
 ];
@@ -148,7 +105,7 @@ const sectionVariants = {
     visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: "easeOut", staggerChildren: 0.2 } }
 };
 
-const AnimatedSection = ({ id, children, className = '' }) => {
+const AnimatedSection: FC<{ id?: string, children: React.ReactNode, className?: string }> = ({ id, children, className = '' }) => {
     const controls = useAnimation();
     const [ref, inView] = useInView({ threshold: 0.1, triggerOnce: true });
 
@@ -165,7 +122,7 @@ const AnimatedSection = ({ id, children, className = '' }) => {
     );
 };
 
-const AnimatedCounter = ({ value, className }) => {
+const AnimatedCounter: FC<{ value: number, className?: string }> = ({ value, className }) => {
     const [count, setCount] = useState(0);
     const { ref, inView } = useInView({ threshold: 0.5, triggerOnce: true });
 
@@ -176,7 +133,7 @@ const AnimatedCounter = ({ value, className }) => {
                 ease: "easeOut",
                 onUpdate: (latest) => setCount(Math.floor(latest)),
             });
-            return controls.stop;
+            return () => controls.stop();
         }
     }, [inView, value]);
     
@@ -263,7 +220,7 @@ const EcosystemSection = () => (
     <AnimatedSection id="ecosystem" className="bg-gray-50">
         <div className="text-center mb-12">
             <motion.h2 variants={itemVariants} className="text-3xl lg:text-5xl font-bold tracking-tight text-gray-900">A Thriving National Ecosystem</motion.h2>
-            <motion.p variants={itemVariants} className="mt-4 text-base md:text-lg text-gray-600 max-w-2xl mx-auto">Our platform is the trusted engine for the nation's brightest minds and most impactful institutions.</motion.p>
+            <motion.p variants={itemVariants} className="mt-4 text-base md:text-lg text-gray-600 max-w-2xl mx-auto">Our platform is the trusted engine for the nation&apos;s brightest minds and most impactful institutions.</motion.p>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8">
             {ecosystemStats.map((stat) => (
@@ -301,7 +258,7 @@ const SectorsSection = () => {
         <AnimatedSection id="sectors" className="bg-white">
             <div className="text-center mb-12">
                 <motion.h2 variants={itemVariants} className="text-3xl lg:text-5xl font-bold tracking-tight text-gray-900">Core Development Sectors</motion.h2>
-                <motion.p variants={itemVariants} className="mt-4 text-base md:text-lg text-gray-600 max-w-3xl mx-auto">Explore the key disciplines driving Somalia's growth, find specific opportunities, and connect with sector leaders.</motion.p>
+                <motion.p variants={itemVariants} className="mt-4 text-base md:text-lg text-gray-600 max-w-3xl mx-auto">Explore the key disciplines driving Somaliland&apos;s growth, find specific opportunities, and connect with sector leaders.</motion.p>
             </div>
             <div className="grid lg:grid-cols-3 gap-8">
                 <motion.div variants={itemVariants} className="lg:col-span-1">
@@ -329,6 +286,7 @@ const SectorsSection = () => {
                                 <motion.img
                                     key={currentImage}
                                     src={currentImage}
+                                    alt={activeSector.name}
                                     initial={{ opacity: 0, scale: 1.1 }}
                                     animate={{ opacity: 1, scale: 1 }}
                                     transition={{ duration: 0.7, ease: 'easeInOut' }}
@@ -337,14 +295,14 @@ const SectorsSection = () => {
                              </AnimatePresence>
                         </div>
                         <div className="p-8 flex flex-col flex-grow">
-                             <h3 className="text-2xl font-bold mb-4">{activeSector.name}</h3>
+                            <h3 className="text-2xl font-bold mb-4">{activeSector.name}</h3>
                             <AnimatePresence mode="wait">
                                 <motion.div key={currentStat.subField} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.3 }}>
                                     <p className="text-2xl font-bold text-blue-600">{currentStat.opportunities}+</p>
                                     <p className="text-lg font-semibold text-gray-800">{currentStat.subField}</p>
                                 </motion.div>
                             </AnimatePresence>
-                             <motion.a 
+                            <motion.a 
                                 key={activeSector.name}
                                 href="#" 
                                 whileHover={{ scale: 1.05 }}
@@ -361,11 +319,9 @@ const SectorsSection = () => {
 };
 
 const OpportunitiesSection = () => {
-    // ... OpportunitiesSection component from previous version (unchanged)
-    const typeStyles = {
+    const typeStyles: { [key: string]: string } = {
         'JOB': 'bg-blue-100 text-blue-800', 'NGO': 'bg-yellow-100 text-yellow-800', 'GOV': 'bg-gray-200 text-gray-800',
     };
-
     return (
         <AnimatedSection id="opportunities" className="bg-gray-50">
             <div className="text-center">
@@ -399,7 +355,7 @@ const TestimonialsSection = () => (
             </div>
             <div className="grid md:grid-cols-1 lg:grid-cols-3 gap-8">{testimonialsData.map((t) => (
                 <motion.div key={t.name} variants={itemVariants} className="bg-gray-50 p-8 rounded-lg border border-gray-200 shadow-xl">
-                    <p className="text-gray-700 italic mb-6">"{t.quote}"</p>
+                    <p className="text-gray-700 italic mb-6">&quot;{t.quote}&quot;</p>
                     <div>
                         <h4 className="font-bold text-gray-900">{t.name}</h4>
                         <p className="text-sm text-blue-600 font-medium">{t.role}</p>
@@ -411,9 +367,8 @@ const TestimonialsSection = () => (
 );
 
 const FAQSection = () => {
-    const [openIndex, setOpenIndex] = useState(0);
-
-    const AccordionItem = ({ item, isOpen, onClick }) => (
+    const [openIndex, setOpenIndex] = useState<number | null>(0);
+    const AccordionItem: FC<{ item: { q: string, a: string }, isOpen: boolean, onClick: () => void }> = ({ item, isOpen, onClick }) => (
         <motion.div variants={itemVariants} className="border-b border-gray-200/80 py-6">
             <button onClick={onClick} className="w-full flex justify-between items-center text-left">
                 <span className="text-lg font-medium text-gray-900">{item.q}</span>
@@ -438,11 +393,11 @@ const FAQSection = () => {
         <AnimatedSection id="faq" className="bg-gray-50">
             <div className="max-w-4xl mx-auto">
                  <div className="text-center mb-12">
-                     <motion.h2 variants={itemVariants} className="text-3xl lg:text-5xl font-bold tracking-tight">Common Questions</motion.h2>
-                     <motion.p variants={itemVariants} className="text-gray-600 mt-4">Find answers to common questions about Dhiselink.</motion.p>
+                      <motion.h2 variants={itemVariants} className="text-3xl lg:text-5xl font-bold tracking-tight">Common Questions</motion.h2>
+                      <motion.p variants={itemVariants} className="text-gray-600 mt-4">Find answers to common questions about Dhiselink.</motion.p>
                  </div>
                  <div className="mt-8 bg-white p-8 rounded-lg shadow-xl border border-gray-200/80">
-                     {faqData.map((item, index) => (<AccordionItem key={index} item={item} isOpen={openIndex === index} onClick={() => setOpenIndex(openIndex === index ? null : index)} />))}
+                      {faqData.map((item, index) => (<AccordionItem key={index} item={item} isOpen={openIndex === index} onClick={() => setOpenIndex(openIndex === index ? null : index)} />))}
                  </div>
             </div>
         </AnimatedSection>
@@ -452,9 +407,9 @@ const FAQSection = () => {
 const CTASection = () => (
     <AnimatedSection id="contact" className="bg-white !pt-12 !pb-16">
         <div className="relative bg-gray-800 rounded-lg p-12 text-center overflow-hidden shadow-2xl">
-             <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-5"></div>
-            <motion.h2 variants={itemVariants} className="text-3xl md:text-5xl font-extrabold text-white tracking-tighter mb-4 relative z-10">Join the Movement to Build a Better Somalia</motion.h2>
-            <motion.p variants={itemVariants} className="text-gray-300 max-w-xl mx-auto mb-8 relative z-10">Register as a professional or an institution and become part of Somalia's development revolution.</motion.p>
+              <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-5"></div>
+            <motion.h2 variants={itemVariants} className="text-3xl md:text-5xl font-extrabold text-white tracking-tighter mb-4 relative z-10">Join the Movement to Build a Better Somaliland</motion.h2>
+            <motion.p variants={itemVariants} className="text-gray-300 max-w-xl mx-auto mb-8 relative z-10">Register as a professional or an institution and become part of Somaliland&apos;s development revolution.</motion.p>
             <motion.div variants={itemVariants} className="flex flex-col sm:flex-row justify-center items-center gap-4 relative z-10">
                 <motion.a whileHover={{ scale: 1.05 }} href="/register" className="w-full sm:w-auto bg-blue-600 text-white font-bold px-8 py-3.5 rounded-lg hover:bg-blue-700 transition-all duration-300">
                     Register as a Professional
@@ -483,4 +438,3 @@ export default function HomePage() {
         </>
     );
 }
-
