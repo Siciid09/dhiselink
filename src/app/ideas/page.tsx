@@ -75,5 +75,5 @@ export default function IdeaHubPage() {
                 </div>
             </section>
         </div>
-    );
+    ); 
 }
