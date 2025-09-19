@@ -4,118 +4,61 @@ import React, { useState, useEffect, FC } from 'react';
 import { motion, useAnimation, AnimatePresence, animate } from 'framer-motion';
 import { useInView } from 'react-intersection-observer';
 import {
-<<<<<<< HEAD
-    Users, Briefcase, Handshake, Rocket, Code, HardHat, GitBranch,
-    Zap, Quote, Plus, ArrowRight, Globe2, Building, Palette
-} from 'lucide-react';
-
-// --- 1. THEME & CONFIG ---
-
-const theme = {
-    colors: {
-        background: '#0a0a1a', // Dark blue-ish background
-        primary: '#4f46e5',   // Indigo
-        secondary: '#14b8a6', // Teal
-        accent: '#f59e0b',    // Amber
-        text: '#e2e8f0',      // Light Slate
-        muted: '#94a3b8',     // Slate
-        card: 'rgba(23, 23, 39, 0.6)', // Semi-transparent card bg
-        border: 'rgba(255, 255, 255, 0.1)',
-        hats: {
-            infra: '#f59e0b', // Amber for Infrastructure
-            tech: '#14b8a6',  // Teal for Tech
-            design: '#8b5cf6',// Violet for Design
-            energy: '#22c55e',// Green for Energy
-        }
-    }
-};
-
-// --- 2. DATA (Updated with colors for the robot's hat) ---
-=======
     Users, Briefcase, Handshake, Rocket, Code, HardHat,
-    Quote, Plus, ArrowRight, MapPin, Building, ChevronRight, ChevronLeft, MoveDown
+    Quote, Plus, ArrowRight, MapPin, Building, ChevronRight, ChevronLeft, MoveDown,
+    Wrench, Zap, Atom, Wind, Shield, DraftingCompass, Home
 } from 'lucide-react';
 
-// --- 1. DATA (Content remains the same, styling will be applied in components) ---
->>>>>>> 8ef4cca (Updated homepage design)
+// --- 1. EXPANDED DATA & HERO CONTENT FOR ROBOT ---
+
+const heroContent = [
+    {
+        tagline: "Building a Stronger Nation",
+        title: "Pioneering Civil & Structural Engineering",
+        subtitle: "From towering structures to resilient infrastructure, find the civil engineers shaping our nation's foundation.",
+        hat: "civil"
+    },
+    {
+        tagline: "The Digital Revolution is Here",
+        title: "Innovate with World-Class Tech Talent",
+        subtitle: "Find the nation's brightest developers, IT experts, and digital innovators to build a thriving digital economy.",
+        hat: "tech"
+    },
+    {
+        tagline: "Safety & Sustainability First",
+        title: "Leading in Environmental & Safety Roles",
+        subtitle: "Connect with safety officers and environmental experts dedicated to building a sustainable and secure future.",
+        hat: "safety"
+    }
+];
 
 const partners = [
     { name: "Ministry of Public Works", logoUrl: `https://logo.clearbit.com/somalilanddevelopmentfund.org?size=100` },
     { name: "SIMAD University", logoUrl: `https://logo.clearbit.com/simad.edu.so?size=100` },
-    { name: "University of Mogadishu", logoUrl: `https://logo.clearbit.com/mogadishuuniversity.edu.so?size=100`},
+    { name: "University of Mogadishu", logoUrl: `https://logo.clearbit.com/mogadishuuniversity.edu.so?size=100` },
     { name: "Premier Bank", logoUrl: `https://logo.clearbit.com/premierbank.so?size=100` },
     { name: "UN Development Programme", logoUrl: `https://logo.clearbit.com/undp.org?size=100` },
     { name: "Dahabshiil Group", logoUrl: `https://logo.clearbit.com/dahabshiil.com?size=100` },
-<<<<<<< HEAD
     { name: "Hormuud Telecom", logoUrl: `https://logo.clearbit.com/hormuud.com?size=100` },
-=======
->>>>>>> 8ef4cca (Updated homepage design)
 ];
 
 const ecosystemStats = [
-    { value: 2500, label: "Professionals", suffix: "+", icon: "👩‍💼" },
-    { value: 620, label: "Opportunities", suffix: "+", icon: "📑" },
-    { value: 150, label: "Institutions", suffix: "+", icon: "🏛️" },
-    { value: 85, label: "Projects", suffix: "+", icon: "⚙️" },
+    { value: 2500, label: "Professionals", suffix: "+", icon: <Users /> },
+    { value: 620, label: "Opportunities", suffix: "+", icon: <Briefcase /> },
+    { value: 150, label: "Institutions", suffix: "+", icon: <Handshake /> },
+    { value: 85, label: "Projects", suffix: "+", icon: <Rocket /> },
 ];
 
 const sectorsData = [
-    {
-        name: "Infrastructure & Construction",
-<<<<<<< HEAD
-        icon: <HardHat className="text-amber-400"/>,
-        description: "Building the nation's foundational structures, from public works and transport to commercial real estate.",
-        imageUrls: [
-            "https://images.unsplash.com/photo-1541888946425-d81bb19240f5?q=80&w=800&auto=format&fit=crop",
-            "https://images.unsplash.com/photo-1589939705384-5185137a7f0f?q=80&w=800&auto=format&fit=crop",
-            "https://images.unsplash.com/photo-1522202685239-4434255a77c2?q=80&w=800&auto=format&fit=crop"
-        ],
-        stats: [
-            { subField: "Construction Management", opportunities: 180 },
-            { subField: "Urban Planning & Design", opportunities: 90 },
-            { subField: "Water & Sanitation Works", opportunities: 80 },
-        ]
-    },
-    {
-        name: "Software & Digital Systems",
-        icon: <Code className="text-teal-400"/>,
-        description: "Building the digital backbone of the nation, from mobile applications and fintech to cloud computing.",
-        imageUrls: [
-            "https://images.unsplash.com/photo-1555066931-4365d14bab8c?q=80&w=800&auto=format&fit=crop",
-            "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?q=80&w=800&auto=format&fit=crop",
-            "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?q=80&w=800&auto=format&fit=crop"
-        ],
-        stats: [
-            { subField: "Fintech & Mobile Apps", opportunities: 120 },
-            { subField: "Cybersecurity & Networks", opportunities: 70 },
-            { subField: "Cloud & DevOps", opportunities: 60 },
-        ]
-    }
-];
-
-const heroContent = [
-    { tagline: "Engineering a Stronger Nation", title: "Powering National Infrastructure.", subtitle: "Connecting engineers, managers, and planners to the projects that shape our cities and supply lines.", hatColor: theme.colors.hats.infra },
-    { tagline: "The Digital Revolution is Here", title: "Innovate with Somaliland Tech Talent.", subtitle: "Find the nation's brightest developers, IT experts, and digital innovators to build a thriving digital economy.", hatColor: theme.colors.hats.tech },
-    { tagline: "Designing Our Future Cities", title: "Shaping Tomorrow's Urban Landscapes.", subtitle: "From sustainable architecture to smart city planning, discover the talent defining our urban future.", hatColor: theme.colors.hats.design },
-    { tagline: "Sustainable Energy for All", title: "Leading the Charge in Green Energy.", subtitle: "Explore opportunities in renewable energy and connect with experts driving Somaliland's green transition.", hatColor: theme.colors.hats.energy }
-=======
-        icon: HardHat,
-        description: "Building the nation’s foundational structures, from public works to transport.",
-        stat: "80+ Projects"
-    },
-    {
-        name: "Software & Digital Systems",
-        icon: Code,
-        description: "Driving the digital backbone of the nation, from fintech to cloud computing.",
-        stat: "120+ Opportunities"
-    },
-    {
-        name: "Technical & Electrical Trades",
-        icon: Users,
-        description: "Powering industries with skilled electricians, carpenters, and technicians.",
-        stat: "70+ Partners"
-    },
->>>>>>> 8ef4cca (Updated homepage design)
+    { name: "Civil Engineering", icon: Building, description: "Designing and constructing public works like roads, bridges, and water systems.", stat: "80+ Projects" },
+    { name: "Software Development", icon: Code, description: "Building the digital backbone of the nation, from fintech to cloud computing.", stat: "120+ Opportunities" },
+    { name: "Electrical Engineering", icon: Zap, description: "Powering industries with skilled electricians and power systems specialists.", stat: "70+ Partners" },
+    { name: "Mechanical Engineering", icon: Wrench, description: "Developing machines, tools, and systems for manufacturing and industrial processes.", stat: "50+ Roles" },
+    { name: "Environmental & Safety", icon: Shield, description: "Ensuring sustainable practices and workplace safety across all sectors.", stat: "45+ Certifications" },
+    { name: "Urban Planning", icon: Home, description: "Shaping the growth of cities with strategic design and sustainable development.", stat: "30+ Initiatives" },
+    { name: "Renewable Energy", icon: Wind, description: "Harnessing wind, solar, and other green resources to power the future.", stat: "25+ Plants" },
+    { name: "Chemical Engineering", icon: Atom, description: "Transforming raw materials into valuable products for industrial and consumer use.", stat: "20+ Facilities" },
+    { name: "Architecture & Design", icon: DraftingCompass, description: "Creating innovative and functional spaces for living and working.", stat: "60+ Firms" },
 ];
 
 const opportunities = [
@@ -125,15 +68,9 @@ const opportunities = [
 ];
 
 const testimonialsData = [
-<<<<<<< HEAD
-   { name: 'Asha Hussein', role: 'Project Manager, Ministry of Public Works', quote: "Dhiselink is the critical link we needed. It connects public sector projects with the private sector expertise required to execute them efficiently. It's accelerating national progress." },
-   { name: 'Dr. Ahmed Jama', role: 'Director, National Planning Institute', quote: "Our graduates have a direct bridge to impactful careers. Dhiselink is vital for retaining our nation's top talent." },
-   { name: 'Omar Yusuf', role: 'Founder, Saafi Solar', quote: "Through the platform, we found two brilliant engineers who are now core members of our startup. The talent here is exceptional." }
-=======
    { name: 'Asha Hussein', role: 'Project Manager, Ministry of Public Works', quote: "Dhiselink is the critical link we needed. It connects public sector projects with the private sector expertise required to execute them efficiently. It's accelerating national progress.", avatarUrl: 'https://randomuser.me/api/portraits/women/68.jpg' },
    { name: 'Dr. Ahmed Jama', role: 'Director, National Planning Institute', quote: "Our graduates have a direct bridge to impactful careers. Dhiselink is vital for retaining our nation's top talent.", avatarUrl: 'https://randomuser.me/api/portraits/men/32.jpg' },
    { name: 'Omar Yusuf', role: 'Founder, Saafi Solar', quote: "Through the platform, we found two brilliant engineers who are now core members of our startup. The talent here is exceptional.", avatarUrl: 'https://randomuser.me/api/portraits/men/46.jpg' }
->>>>>>> 8ef4cca (Updated homepage design)
 ];
 
 const faqData = [
@@ -143,15 +80,7 @@ const faqData = [
     { q: "Can international organizations post jobs?", a: "Yes, we welcome both national and international organizations that are contributing to development projects within Somaliland." },
 ];
 
-<<<<<<< HEAD
-// --- 3. REUSABLE UI & ANIMATION COMPONENTS ---
-const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: 'easeOut' } }
-};
-=======
 // --- 2. REUSABLE & CORE ANIMATION COMPONENTS ---
->>>>>>> 8ef4cca (Updated homepage design)
 
 const sectionVariants = {
     hidden: { opacity: 0, y: 50 },
@@ -167,13 +96,8 @@ const AnimatedSection: FC<{ id?: string, children: React.ReactNode, className?: 
     }, [controls, inView]);
 
     return (
-<<<<<<< HEAD
-        <section id={id} className={`py-20 md:py-28 relative ${className}`}>
-            <motion.div ref={ref} animate={controls} initial="hidden" variants={sectionVariants} className="container mx-auto px-6">
-=======
         <motion.section ref={ref} animate={controls} initial="hidden" variants={sectionVariants} id={id} className={`py-20 md:py-28 ${className}`}>
             <div className="container mx-auto px-6">
->>>>>>> 8ef4cca (Updated homepage design)
                 {children}
             </div>
         </motion.section>
@@ -197,147 +121,92 @@ const AnimatedCounter: FC<{ value: number, className?: string }> = ({ value, cla
     return <span ref={ref} className={className}>{count}</span>;
 };
 
-<<<<<<< HEAD
-// --- 4. NEW & REDESIGNED PAGE SECTION COMPONENTS ---
-
-const AnimatedRobot: FC<{ hatColor: string }> = ({ hatColor }) => {
-    return (
-        <motion.div
-            initial={{ opacity: 0, scale: 0.8, y: 50 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            transition={{ duration: 0.8, ease: 'easeOut' }}
-            className="relative w-full max-w-lg mx-auto"
-        >
-            {/* Robot SVG */}
-            <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
-                {/* Body */}
-                <path fill="#d1d5db" d="M100 100 a 40 50 0 1 0 0.1 0 Z" transform="translate(0 20)"/>
-                {/* Head */}
-                <circle cx="100" cy="80" r="35" fill="#e5e7eb" />
-                {/* Eyes */}
-                <g>
-                    <circle cx="88" cy="80" r="8" fill="#111827" />
-                    <circle cx="112" cy="80" r="8" fill="#111827" />
-                    <motion.circle
-                        cx="88" cy="80" r="4" fill="#ef4444"
-                        animate={{ scale: [1, 1.2, 1], opacity: [1, 0.8, 1] }}
-                        transition={{ duration: 2, repeat: Infinity }}
-                    />
-                    <motion.circle
-                        cx="112" cy="80" r="4" fill="#ef4444"
-                        animate={{ scale: [1, 1.2, 1], opacity: [1, 0.8, 1] }}
-                        transition={{ duration: 2, repeat: Infinity, delay: 0.5 }}
-                    />
-                </g>
-                {/* Hard Hat */}
-                <motion.path
-                    d="M 80 55 Q 100 40, 120 55 L 125 60 L 75 60 Z"
-                    fill={hatColor}
-                    transition={{ duration: 0.5, ease: 'easeInOut' }}
-                />
-                <motion.path
-                    d="M 70 60 H 130"
-                    stroke={hatColor}
-                    strokeWidth="4"
-                    fill="none"
-                    transition={{ duration: 0.5, ease: 'easeInOut' }}
-                />
-            </svg>
-        </motion.div>
-    );
-};
-
-
-const HeroSection = () => {
-    const [currentIndex, setCurrentIndex] = useState(0);
-
-    useEffect(() => {
-        const timer = setInterval(() => {
-            setCurrentIndex((prev) => (prev + 1) % heroContent.length);
-        }, 5000);
-        return () => clearInterval(timer);
-    }, []);
-
-    const currentContent = heroContent[currentIndex];
-    
-    // Background animated shapes
-    const bgShapes = [
-        { size: 60, x: '10%', y: '20%', duration: 15 },
-        { size: 120, x: '80%', y: '30%', duration: 20 },
-        { size: 80, x: '25%', y: '70%', duration: 18 },
-        { size: 40, x: '90%', y: '85%', duration: 12 },
-    ];
-=======
 
 // --- 3. NEW & REDESIGNED PAGE SECTION COMPONENTS ---
->>>>>>> 8ef4cca (Updated homepage design)
 
 /**
- * Redesigned Robot Component
- * A sleeker, minimal, futuristic robot holding an animated holographic blueprint.
+ * Advanced Futuristic Robot Component
+ * Features changing hats, eye animations, and a sleek design.
+ * NOW WITH: Red eyes, blinking, looking around, eyebrows that shift, smile on hover, red shadow on hover.
  */
-const FuturisticRobot: FC = () => {
+const FuturisticRobot: FC<{ hatType: string }> = ({ hatType }) => {
+    const [isHovered, setIsHovered] = useState(false);
+    const [isBlinking, setIsBlinking] = useState(false);
+    const [eyeOffset, setEyeOffset] = useState([0, 0]); // x, y for looking around
+    const [eyebrowAngle, setEyebrowAngle] = useState(0); // For shifting eyebrows
+
+    // Eye blinking
+    useEffect(() => {
+        const blinkTimer = setInterval(() => {
+            setIsBlinking(true);
+            setTimeout(() => setIsBlinking(false), 100); // Blink duration
+        }, Math.random() * 3000 + 2000); // Blink every 2-5 seconds
+        return () => clearInterval(blinkTimer);
+    }, []);
+
+    // Eye looking around
+    useEffect(() => {
+        const lookTimer = setInterval(() => {
+            setEyeOffset([Math.random() * 4 - 2, Math.random() * 4 - 2]); // -2 to 2 offset
+        }, Math.random() * 5000 + 3000); // Look around every 3-8 seconds
+        return () => clearInterval(lookTimer);
+    }, []);
+
+    // Eyebrow shifting
+    useEffect(() => {
+        const eyebrowTimer = setInterval(() => {
+            setEyebrowAngle(Math.random() * 10 - 5); // -5 to 5 degrees
+        }, Math.random() * 6000 + 4000); // Shift every 4-10 seconds
+        return () => clearInterval(eyebrowTimer);
+    }, []);
+
+    const Hat: FC<{ type: string }> = ({ type }) => {
+        let hatPath, hatColor;
+        switch (type) {
+            case 'civil':
+                hatPath = "M 170 80 Q 200 60 230 80 L 240 90 L 160 90 Z";
+                hatColor = "#FBBF24"; // Yellow
+                break;
+            case 'tech':
+                hatPath = "M 180 85 h 40 v -10 a 20 20 0 0 0 -40 0 z";
+                hatColor = "#3B82F6"; // Blue
+                break;
+            case 'safety':
+                hatPath = "M 175 85 C 175 70, 225 70, 225 85 H 175 Z";
+                hatColor = "#22C55E"; // Green
+                break;
+            default:
+                hatPath = "";
+                hatColor = "transparent";
+        }
+        return (
+            <motion.path
+                d={hatPath}
+                fill={hatColor}
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.3, ease: "easeInOut" }}
+            />
+        );
+    };
+
     return (
-<<<<<<< HEAD
-        <section id="home" className="relative h-screen min-h-[700px] flex items-center bg-background overflow-hidden">
-            {/* Animated Background Circles */}
-            <div className="absolute inset-0 z-0">
-                {bgShapes.map((shape, i) => (
-                     <motion.div
-                        key={i}
-                        className="absolute rounded-full bg-primary/10"
-                        style={{ width: shape.size, height: shape.size, top: shape.y, left: shape.x }}
-                        animate={{ y: ['0%', '5%', '0%'] , x: ['0%', '-5%', '0%'] }}
-                        transition={{ duration: shape.duration, repeat: Infinity, ease: 'easeInOut', repeatType: 'mirror' }}
-                    />
-                ))}
-            </div>
-            
-            <div className="container mx-auto px-6 relative z-10 grid md:grid-cols-2 gap-8 items-center">
-                {/* Left Side: Text Content */}
-                <div className="text-center md:text-left">
-                    <AnimatePresence mode="wait">
-                        <motion.div
-                            key={currentIndex}
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0, transition: { duration: 0.7, staggerChildren: 0.2 } }}
-                            exit={{ opacity: 0, y: -20, transition: { duration: 0.3 } }}
-                        >
-                            <motion.div variants={itemVariants} className={`inline-block text-sm font-semibold px-4 py-1.5 rounded-full mb-4 border`} style={{ color: currentContent.hatColor, borderColor: currentContent.hatColor }}>
-                                {currentContent.tagline}
-                            </motion.div>
-                            <motion.h1 variants={itemVariants} className="text-4xl md:text-6xl font-extrabold tracking-tighter text-text leading-tight mb-6">
-                                {currentContent.title}
-                            </motion.h1>
-                            <motion.p variants={itemVariants} className="text-base md:text-lg text-muted mb-10 max-w-xl mx-auto md:mx-0">
-                                {currentContent.subtitle}
-                            </motion.p>
-                            <motion.div variants={itemVariants} className="flex flex-col sm:flex-row justify-center md:justify-start items-center gap-4">
-                                <motion.a href="/opportunities" whileHover={{ scale: 1.05, y: -3 }} className={`w-full sm:w-auto text-white font-bold px-8 py-3.5 rounded-lg shadow-lg transition-all duration-300 bg-primary hover:bg-primary/90`}>
-                                    Explore Jobs
-                                </motion.a>
-                                <motion.a href="/professionals" whileHover={{ scale: 1.05, y: -3 }} className="w-full sm:w-auto bg-card text-text font-semibold px-8 py-3.5 rounded-lg border border-border hover:bg-border transition-all duration-300">
-                                    Find Talent
-                                </motion.a>
-                            </motion.div>
-                        </motion.div>
-                    </AnimatePresence>
-                </div>
-                
-                {/* Right Side: Animated Robot */}
-                <div className="hidden md:block">
-                     <AnimatePresence mode="wait">
-                        <AnimatedRobot key={currentIndex} hatColor={currentContent.hatColor} />
-                     </AnimatePresence>
-=======
         <motion.div 
-            initial={{ opacity: 0, y: 50 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1, ease: [0.22, 1, 0.36, 1], delay: 0.2 }}
             className="relative w-full max-w-lg mx-auto"
+            onHoverStart={() => setIsHovered(true)}
+            onHoverEnd={() => setIsHovered(false)}
         >
+            {/* Red Shadow/Glow on hover */}
+            <motion.div
+                className="absolute inset-0 bg-red-500/80 -z-10 rounded-full"
+                style={{ filter: 'blur(40px)' }}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: isHovered ? 1 : 0 }}
+                transition={{ duration: 0.4 }}
+            />
+
             <svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
-                {/* Soft Shadows */}
                 <defs>
                     <filter id="soft-glow" x="-50%" y="-50%" width="200%" height="200%">
                         <feGaussianBlur stdDeviation="8" result="coloredBlur" />
@@ -356,46 +225,42 @@ const FuturisticRobot: FC = () => {
                 <circle cx="200" cy="120" r="60" fill="#F3F4F6" />
                 <circle cx="200" cy="120" r="55" fill="#FFFFFF" />
 
-                {/* Face */}
-                <circle cx="180" cy="120" r="10" fill="#111827" />
-                <circle cx="220" cy="120" r="10" fill="#111827" />
+                {/* Eyebrows */}
                 <motion.path 
-                    d="M 190 140 Q 200 150 210 140" 
-                    stroke="#9CA3AF" 
-                    strokeWidth="2" 
-                    fill="none" 
-                    initial={{ d: "M 190 140 Q 200 140 210 140" }}
-                    animate={{ d: "M 190 140 Q 200 150 210 140" }}
-                    transition={{ duration: 1, delay: 1, ease: "easeOut" }}
+                    d="M 170 105 L 190 105" 
+                    stroke="#111827" strokeWidth="3" fill="none" strokeLinecap="round"
+                    animate={{ y: eyebrowAngle, rotate: -eyebrowAngle/2 }} // Shift and slight rotate
+                    transition={{ duration: 0.5, ease: "easeInOut" }}
+                />
+                <motion.path 
+                    d="M 210 105 L 230 105" 
+                    stroke="#111827" strokeWidth="3" fill="none" strokeLinecap="round"
+                    animate={{ y: eyebrowAngle, rotate: eyebrowAngle/2 }}
+                    transition={{ duration: 0.5, ease: "easeInOut" }}
                 />
 
-                {/* Holographic Blueprint */}
-                <g transform="translate(200, 240) rotate(15)">
-                    {/* Base */}
-                    <motion.ellipse cx="0" cy="0" rx="60" ry="20" fill="#4F46E5"
-                        initial={{ opacity: 0, scale: 0.5 }}
-                        animate={{ opacity: 0.3, scale: 1 }}
-                        transition={{ duration: 0.8, delay: 0.5, ease: "easeOut" }}
-                        filter="url(#soft-glow)" />
-
-                    {/* Animated Lines */}
-                    {[...Array(3)].map((_, i) => (
-                        <motion.path
-                            key={i}
-                            d={`M -50,${-30 + i * 20} L 50,${-30 + i * 20}`}
-                            stroke="#FFFFFF"
-                            strokeWidth="1.5"
-                            strokeDasharray="4 8"
-                            initial={{ strokeDashoffset: 12 }}
-                            animate={{ strokeDashoffset: 0 }}
-                            transition={{ duration: 2, repeat: Infinity, ease: 'linear', delay: 0.8 + i*0.2 }}
-                        />
-                    ))}
-                    <motion.rect x="-20" y="-50" width="40" height="30" rx="3" fill="#FFFFFF" stroke="#4F46E5" strokeWidth="2"
-                        initial={{ y: -50, opacity: 0 }}
-                        animate={{ y: [-50, -60, -50], opacity: 1 }}
-                        transition={{ duration: 3, repeat: Infinity, ease: "easeInOut", delay: 1 }} />
-                </g>
+                {/* Eyes - Red and Blinking */}
+                <motion.g animate={{ x: eyeOffset[0], y: eyeOffset[1] }}>
+                    <circle cx="180" cy="120" r="10" fill="#FF0000" />
+                    {isBlinking && <rect x="170" y="118" width="20" height="4" fill="#FFFFFF" />} {/* Blink effect */}
+                </motion.g>
+                <motion.g animate={{ x: eyeOffset[0], y: eyeOffset[1] }}>
+                    <circle cx="220" cy="120" r="10" fill="#FF0000" />
+                    {isBlinking && <rect x="210" y="118" width="20" height="4" fill="#FFFFFF" />} {/* Blink effect */}
+                </motion.g>
+                
+                {/* Mouth - Smiles on Hover */}
+                <motion.path 
+                    d="M 190 140 Q 200 150 210 140" 
+                    stroke="#9CA3AF" strokeWidth="2" fill="none" 
+                    animate={{ d: isHovered ? "M 190 145 Q 200 155 210 145" : "M 190 140 Q 200 150 210 140" }}
+                    transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                />
+                
+                {/* Hat */}
+                <AnimatePresence mode="wait">
+                    <Hat key={hatType} type={hatType} />
+                </AnimatePresence>
             </svg>
         </motion.div>
     );
@@ -403,81 +268,108 @@ const FuturisticRobot: FC = () => {
 
 /**
  * Hero Section
+ * NOW WITH: Floating circles and blurred gradients at edges.
  */
 const HeroSection: FC = () => {
+    const [index, setIndex] = useState(0);
+    
+    useEffect(() => {
+        const timer = setInterval(() => {
+            setIndex((prevIndex) => (prevIndex + 1) % heroContent.length);
+        }, 6000); // Cycle every 6 seconds
+        return () => clearInterval(timer);
+    }, []);
+
+    const currentContent = heroContent[index];
+
+    // Floating circles animation variants
+    const circleVariants = {
+        animate: (i: number) => ({
+            x: [0, 100 - Math.random() * 200],
+            y: [0, 100 - Math.random() * 200],
+            scale: [0.5, 1.5],
+            opacity: [0, 0.5, 0],
+            transition: {
+                duration: Math.random() * 8 + 5, // 5-13 seconds
+                repeat: Infinity,
+                ease: "easeInOut",
+                delay: i * 0.5 // Stagger initial animation
+            }
+        })
+    };
+
     return (
         <section className="relative min-h-screen flex items-center bg-gradient-to-br from-white to-gray-100 overflow-hidden">
             {/* Background pattern */}
             <div className="absolute inset-0 opacity-20" style={{ backgroundImage: "url('/grid.svg')", backgroundSize: "40px 40px" }}></div>
             
+            {/* Left Blurred Gradient */}
+            <div className="absolute top-0 left-0 w-1/3 h-full bg-gradient-to-r from-blue-100/50 to-transparent blur-3xl z-0"></div>
+            {/* Right Blurred Gradient */}
+            <div className="absolute top-0 right-0 w-1/3 h-full bg-gradient-to-l from-violet-100/50 to-transparent blur-3xl z-0"></div>
+
+            {/* Floating Circles */}
+            {[...Array(8)].map((_, i) => (
+                <motion.div
+                    key={i}
+                    custom={i}
+                    variants={circleVariants}
+                    animate="animate"
+                    className="absolute bg-blue-300/30 rounded-full"
+                    style={{
+                        width: Math.random() * 30 + 10, // 10-40px
+                        height: Math.random() * 30 + 10,
+                        top: `${Math.random() * 100}%`,
+                        left: `${Math.random() * 100}%`,
+                    }}
+                />
+            ))}
+            
             <div className="container mx-auto px-6 relative z-10 grid lg:grid-cols-2 gap-12 items-center">
-                {/* Left Side: Content */}
-                <motion.div 
-                    initial="hidden" animate="visible" variants={sectionVariants}
-                    className="text-center lg:text-left"
-                >
-                    <motion.div 
-                        variants={sectionVariants}
-                        className="inline-block px-4 py-2 mb-6 border border-white/50 bg-white/50 backdrop-blur-lg rounded-full text-gray-700 font-medium"
-                    >
-                        Designing Our Future Cities
-                    </motion.div>
-
-                    <motion.h1 
-                        variants={sectionVariants}
-                        className="text-4xl md:text-6xl font-extrabold tracking-tighter text-gray-900 mb-6"
-                    >
-                        Shaping Tomorrow’s Urban Landscapes
-                    </motion.h1>
-
-                    <motion.p 
-                        variants={sectionVariants}
-                        className="text-lg text-gray-600 max-w-lg mx-auto lg:mx-0 mb-10"
-                    >
-                        From sustainable architecture to smart city planning, discover the talent defining our urban future.
-                    </motion.p>
-                    
-                    <motion.div 
-                        variants={sectionVariants}
-                        className="flex flex-col sm:flex-row justify-center lg:justify-start items-center gap-4"
-                    >
-                        <motion.a 
-                            href="#jobs" 
-                            className="w-full sm:w-auto px-8 py-4 bg-gradient-to-r from-blue-600 to-violet-600 text-white font-bold rounded-xl shadow-lg"
-                            whileHover={{ scale: 1.05, y: -2, boxShadow: "0 10px 20px rgba(96, 165, 250, 0.5)" }}
-                            transition={{ type: "spring", stiffness: 300 }}
+                <div className="text-center lg:text-left">
+                    <AnimatePresence mode="wait">
+                        <motion.div
+                            key={index}
+                            initial={{ opacity: 0, y: 30 }}
+                            animate={{ opacity: 1, y: 0, transition: { staggerChildren: 0.15, duration: 0.7, ease: [0.22, 1, 0.36, 1] } }}
+                            exit={{ opacity: 0, y: -30 }}
                         >
-                            Explore Jobs
-                        </motion.a>
-                        <motion.a 
-                            href="#professionals"
-                            className="w-full sm:w-auto px-8 py-4 text-gray-700 font-bold rounded-xl border-2 border-gray-300"
-                            whileHover={{ scale: 1.05, y: -2, backgroundColor: "#F3F4F6" }}
-                            transition={{ type: "spring", stiffness: 300 }}
-                        >
-                            Find Talent
-                        </motion.a>
-                    </motion.div>
-                </motion.div>
-
-                {/* Right Side: Robot */}
-                <div className="hidden lg:block">
-                    <FuturisticRobot />
->>>>>>> 8ef4cca (Updated homepage design)
+                            <motion.div variants={sectionVariants} className="inline-block px-4 py-2 mb-6 border border-white/50 bg-white/50 backdrop-blur-lg rounded-full text-gray-700 font-medium">
+                                {currentContent.tagline}
+                            </motion.div>
+                            <motion.h1 variants={sectionVariants} className="text-4xl md:text-6xl font-extrabold tracking-tighter text-gray-900 mb-6">
+                                {currentContent.title}
+                            </motion.h1>
+                            <motion.p variants={sectionVariants} className="text-lg text-gray-600 max-w-lg mx-auto lg:mx-0 mb-10">
+                                {currentContent.subtitle}
+                            </motion.p>
+                            <motion.div variants={sectionVariants} className="flex flex-col sm:flex-row justify-center lg:justify-start items-center gap-4">
+                                <motion.a href="#jobs" className="w-full sm:w-auto px-8 py-4 bg-gradient-to-r from-blue-600 to-violet-600 text-white font-bold rounded-xl shadow-lg"
+                                    whileHover={{ scale: 1.05, y: -2, boxShadow: "0 10px 20px rgba(96, 165, 250, 0.5)" }}
+                                    transition={{ type: "spring", stiffness: 300 }}>
+                                    Explore Jobs
+                                </motion.a>
+                                <motion.a href="#professionals" className="w-full sm:w-auto px-8 py-4 text-gray-700 font-bold rounded-xl border-2 border-gray-300"
+                                    whileHover={{ scale: 1.05, y: -2, backgroundColor: "#F3F4F6" }}
+                                    transition={{ type: "spring", stiffness: 300 }}>
+                                    Find Talent
+                                </motion.a>
+                            </motion.div>
+                        </motion.div>
+                    </AnimatePresence>
                 </div>
+
+                <motion.div 
+                    className="hidden lg:block"
+                    whileHover={{ scale: 1.05, rotate: -2 }}
+                    transition={{ type: "spring", stiffness: 200, damping: 20 }}
+                >
+                    <FuturisticRobot hatType={currentContent.hat} />
+                </motion.div>
             </div>
 
-            {/* Scroll Indicator */}
-            <motion.div 
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 1.5 }}
-                className="absolute bottom-10 left-1/2 -translate-x-1/2"
-            >
-                <motion.div
-                    animate={{ y: [0, 8, 0] }}
-                    transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
-                >
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.5 }} className="absolute bottom-10 left-1/2 -translate-x-1/2">
+                <motion.div animate={{ y: [0, 8, 0] }} transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}>
                     <MoveDown className="text-gray-400" />
                 </motion.div>
             </motion.div>
@@ -485,113 +377,41 @@ const HeroSection: FC = () => {
     );
 };
 
-<<<<<<< HEAD
-const PartnersSection = () => (
-    <div className="bg-background/80 backdrop-blur-sm py-12">
-        <div className="container mx-auto px-6 text-center">
-            <p className="font-semibold text-muted mb-8 uppercase tracking-wider text-sm">Trusted by leading organizations nationwide</p>
-            <div className="flex flex-wrap justify-center items-center gap-x-12 md:gap-x-16 gap-y-8">
-                {partners.map((partner) => (
-                    <motion.img
-                        key={partner.name}
-                        src={partner.logoUrl}
-                        alt={partner.name}
-                        className="h-7 object-contain filter grayscale hover:grayscale-0 contrast-0 hover:contrast-100 transition-all duration-300"
-                        whileHover={{ scale: 1.1 }}
-                    />
-                ))}
+/**
+ * Trusted By Section (Infinite Logo Scroller)
+ */
+const TrustedBySection: FC = () => {
+    const duplicatedPartners = [...partners, ...partners];
+    return (
+        <div className="py-20 bg-gradient-to-b from-gray-100 to-white">
+            <div className="container mx-auto px-6">
+                <h2 className="text-4xl md:text-5xl font-bold text-gray-800 text-center mb-16">
+                    Trusted by the Nation's Leading Organizations
+                </h2>
+                <div className="w-full inline-flex flex-nowrap overflow-hidden [mask-image:_linear-gradient(to_right,transparent_0,_black_128px,_black_calc(100%-128px),transparent_100%)]">
+                    <motion.ul 
+                        className="flex items-center justify-center md:justify-start [&_li]:mx-8 [&_img]:max-w-none animate-infinite-scroll"
+                        animate={{ x: ["0%", "-50%"] }}
+                        transition={{ ease: "linear", duration: 40, repeat: Infinity }}
+                    >
+                        {duplicatedPartners.map((partner, index) => (
+                            <li key={index} className="flex-shrink-0">
+                                <img src={partner.logoUrl} alt={partner.name} className="h-10 object-contain filter grayscale hover:grayscale-0 transition-all duration-300" />
+                            </li>
+                        ))}
+                    </motion.ul>
+                </div>
             </div>
         </div>
-    </div>
-);
+    );
+};
 
-
-const EcosystemSection = () => (
-    <AnimatedSection id="ecosystem" className="bg-background">
-        <div className="text-center mb-16">
-            <motion.h2 variants={itemVariants} className="text-4xl lg:text-5xl font-bold tracking-tight text-text">A Thriving National Ecosystem</motion.h2>
-            <motion.p variants={itemVariants} className="mt-4 text-lg text-muted max-w-3xl mx-auto">Our platform is the trusted engine for the nation&apos;s brightest minds and most impactful institutions.</motion.p>
-        </div>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8">
-            {ecosystemStats.map((stat) => (
-                <motion.div
-                    key={stat.label}
-                    variants={itemVariants}
-                    whileHover={{ y: -8, scale: 1.03 }}
-                    className="bg-card p-6 rounded-xl border border-border text-center backdrop-blur-md shadow-2xl shadow-primary/5 transition-all duration-300"
-                >
-                    <div className={`mx-auto w-14 h-14 flex items-center justify-center bg-primary/10 text-primary rounded-full mb-4`}>
-                        {React.cloneElement(stat.icon, { size: 28, strokeWidth: 1.5 })}
-                    </div>
-                    <h3 className="text-3xl md:text-4xl font-semibold tracking-tight text-text">
-                        <AnimatedCounter value={stat.value} />{stat.suffix}
-                    </h3>
-                    <p className="mt-1 text-sm md:text-base text-muted">{stat.label}</p>
-=======
 /**
- * Trusted By Section
- */
-const TrustedBySection: FC = () => (
-    <AnimatedSection id="trusted-by" className="bg-gradient-to-b from-gray-100 to-white">
-        <motion.h2 variants={sectionVariants} className="text-4xl md:text-5xl font-bold text-gray-800 text-center mb-16">
-            Trusted by the Nation's Leading Organizations
-        </motion.h2>
-        <div className="grid grid-cols-3 md:grid-cols-6 gap-6">
-            {partners.map(partner => (
-                <motion.div 
-                    key={partner.name}
-                    variants={sectionVariants}
-                    className="p-4 bg-white rounded-2xl shadow-md border border-gray-200"
-                >
-                    <motion.img 
-                        src={partner.logoUrl} 
-                        alt={partner.name} 
-                        className="h-10 w-full object-contain filter grayscale"
-                        whileHover={{ filter: "grayscale(0%)", scale: 1.1 }}
-                        transition={{ duration: 0.3 }}
-                    />
->>>>>>> 8ef4cca (Updated homepage design)
-                </motion.div>
-            ))}
-        </div>
-    </AnimatedSection>
-);
-
-<<<<<<< HEAD
-// NOTE: Sectors, Opportunities, Testimonials, FAQ, CTA sections would be similarly redesigned.
-// Due to space limitations, providing a full redesign of *every* component is extensive.
-// The examples above (Hero, Partners, Ecosystem) demonstrate the new "modern UI/UX" direction.
-// The principles—dark theme, glassmorphism, accent colors, improved animations, better typography—
-// should be applied to the remaining components for a cohesive final product.
-
-// --- 5. MAIN APP COMPONENT ---
-
-export default function HomePage() {
-    return (
-        <div className="bg-background text-text">
-            <HeroSection />
-            <PartnersSection />
-            <EcosystemSection />
-            {/* Placeholder for other redesigned sections.
-                To complete the redesign, apply the new theme and animation principles
-                to the SectorsSection, OpportunitiesSection, TestimonialsSection,
-                FAQSection, and CTASection components from your original file.
-            */}
-            {/* <SectorsSection /> */}
-            {/* <OpportunitiesSection /> */}
-            {/* <TestimonialsSection /> */}
-            {/* <FAQSection /> */}
-            {/* <CTASection /> */}
-        </div>
-=======
-/**
- * Impact Stats Section
+ * Impact Stats Section (Modernized Icons)
  */
 const ImpactStatsSection: FC = () => (
     <div className="relative py-20 md:py-28 bg-gradient-to-br from-indigo-900 to-blue-900 text-white">
-        {/* Background Pattern */}
         <div className="absolute inset-0 opacity-10 bg-[url('/dots.svg')]"></div>
-        
         <div className="container mx-auto px-6 relative z-10">
             <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={sectionVariants}>
                 <motion.h2 variants={sectionVariants} className="text-4xl md:text-5xl font-bold text-center mb-4">A Thriving National Ecosystem</motion.h2>
@@ -600,12 +420,8 @@ const ImpactStatsSection: FC = () => (
                 </motion.p>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
                     {ecosystemStats.map(stat => (
-                        <motion.div 
-                            key={stat.label}
-                            variants={sectionVariants}
-                            className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl p-6 text-center"
-                        >
-                            <span className="text-4xl">{stat.icon}</span>
+                        <motion.div key={stat.label} variants={sectionVariants} className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl p-6 text-center">
+                            <div className="text-blue-300 mb-2">{React.cloneElement(stat.icon, { size: 40, strokeWidth: 1.5 })}</div>
                             <h3 className="text-4xl md:text-6xl font-bold my-2">
                                 <AnimatedCounter value={stat.value} />{stat.suffix}
                             </h3>
@@ -619,7 +435,7 @@ const ImpactStatsSection: FC = () => (
 );
 
 /**
- * Core Development Sectors Section
+ * Core Development Sectors Section (Expanded to 9)
  */
 const CoreSectorsSection: FC = () => (
     <AnimatedSection id="sectors" className="bg-white">
@@ -629,7 +445,7 @@ const CoreSectorsSection: FC = () => (
         <motion.p variants={sectionVariants} className="text-lg text-gray-600 text-center max-w-2xl mx-auto mb-16">
             Explore the key disciplines driving Somaliland’s growth.
         </motion.p>
-        <div className="grid md:grid-cols-3 gap-8">
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             {sectorsData.map(sector => (
                 <motion.div 
                     key={sector.name}
@@ -689,48 +505,52 @@ const LatestJobsSection: FC = () => {
 };
 
 /**
- * Testimonials Section (Carousel)
+ * Testimonials Section (Upgraded with Dots)
  */
 const TestimonialsSection: FC = () => {
     const [index, setIndex] = useState(0);
-    const direction = 0; // Can be enhanced to track direction
 
-    const paginate = (newDirection: number) => {
-        setIndex(prevIndex => (prevIndex + newDirection + testimonialsData.length) % testimonialsData.length);
+    const paginate = (newIndex: number) => {
+        setIndex(newIndex);
     };
 
     return (
         <AnimatedSection id="testimonials" className="bg-gradient-to-b from-light-blue-50 to-white">
-            <div className="relative max-w-3xl mx-auto text-center overflow-hidden">
-                <AnimatePresence initial={false} custom={direction}>
-                    <motion.div
-                        key={index}
-                        custom={direction}
-                        variants={{
-                            enter: (direction: number) => ({ x: direction > 0 ? 300 : -300, opacity: 0 }),
-                            center: { x: 0, opacity: 1 },
-                            exit: (direction: number) => ({ x: direction < 0 ? 300 : -300, opacity: 0 }),
-                        }}
-                        initial="enter"
-                        animate="center"
-                        exit="exit"
-                        transition={{ x: { type: "spring", stiffness: 300, damping: 30 }, opacity: { duration: 0.2 } }}
-                        className="bg-white p-8 rounded-2xl shadow-2xl border border-gray-200"
-                    >
-                        <Quote className="w-16 h-16 text-gray-200 mx-auto mb-4" />
-                        <p className="text-xl italic font-medium text-gray-700 mb-6">&quot;{testimonialsData[index].quote}&quot;</p>
-                        <img src={testimonialsData[index].avatarUrl} alt={testimonialsData[index].name} className="w-16 h-16 rounded-full mx-auto mb-2" />
-                        <h4 className="font-bold text-gray-900">{testimonialsData[index].name}</h4>
-                        <p className="text-sm text-blue-600 font-medium">{testimonialsData[index].role}</p>
-                    </motion.div>
-                </AnimatePresence>
-                
-                <button onClick={() => paginate(-1)} className="absolute top-1/2 -translate-y-1/2 left-0 md:-left-16 bg-white p-2 rounded-full shadow-md"><ChevronLeft/></button>
-                <button onClick={() => paginate(1)} className="absolute top-1/2 -translate-y-1/2 right-0 md:-right-16 bg-white p-2 rounded-full shadow-md"><ChevronRight/></button>
+            <div className="relative max-w-3xl mx-auto text-center">
+                <div className="overflow-hidden relative h-[420px]">
+                    <AnimatePresence initial={false}>
+                        <motion.div
+                            key={index}
+                            initial={{ x: "100%", opacity: 0 }}
+                            animate={{ x: 0, opacity: 1 }}
+                            exit={{ x: "-100%", opacity: 0 }}
+                            transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                            className="absolute inset-0 bg-white p-8 rounded-2xl shadow-2xl border border-gray-200"
+                        >
+                            <Quote className="w-16 h-16 text-gray-200 mx-auto mb-4" />
+                            <p className="text-xl italic font-medium text-gray-700 mb-6">&quot;{testimonialsData[index].quote}&quot;</p>
+                            <img src={testimonialsData[index].avatarUrl} alt={testimonialsData[index].name} className="w-16 h-16 rounded-full mx-auto mb-2 object-cover" />
+                            <h4 className="font-bold text-gray-900">{testimonialsData[index].name}</h4>
+                            <p className="text-sm text-blue-600 font-medium">{testimonialsData[index].role}</p>
+                        </motion.div>
+                    </AnimatePresence>
+                </div>
+
+                {/* Navigation Dots */}
+                <div className="flex justify-center gap-3 mt-8">
+                    {testimonialsData.map((_, i) => (
+                        <button
+                            key={i}
+                            onClick={() => paginate(i)}
+                            className={`w-3 h-3 rounded-full transition-all duration-300 ${index === i ? 'bg-blue-600 scale-125' : 'bg-gray-300'}`}
+                        />
+                    ))}
+                </div>
             </div>
         </AnimatedSection>
     );
 };
+
 
 /**
  * FAQ Section
@@ -778,7 +598,6 @@ const CTASection: FC = () => (
     <div className="py-20 md:py-28">
         <div className="container mx-auto px-6">
             <div className="relative bg-gradient-to-br from-blue-700 to-violet-800 rounded-3xl p-12 text-center overflow-hidden">
-                {/* Animated background */}
                 <motion.div 
                     className="absolute inset-0 opacity-10" 
                     style={{ backgroundImage: "url('/diagonal-lines.svg')" }}
@@ -822,6 +641,5 @@ export default function HomePage() {
             <FAQSection />
             <CTASection />
         </main>
->>>>>>> 8ef4cca (Updated homepage design)
     );
 }
