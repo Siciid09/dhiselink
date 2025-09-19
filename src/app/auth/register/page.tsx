@@ -2,9 +2,27 @@
 
 "use client";
 
-import { useState } from 'react';
+import { useState, FormEvent, ChangeEvent, FC } from 'react';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { User, AtSign, Lock, AlertTriangle, CheckCircle } from 'lucide-react';
+
+// Reusable Input Field Component for modern UI
+const InputField: FC<{
+    icon: JSX.Element;
+    type: string;
+    value: string;
+    onChange: (e: ChangeEvent<HTMLInputElement>) => void;
+    placeholder: string;
+    required?: boolean;
+    minLength?: number;
+}> = ({ icon, ...props }) => (
+    <div className="relative">
+        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400">
+            {icon}
+        </div>
+        <input {...props} className="w-full h-12 pl-12 pr-4 rounded-lg bg-gray-50 border border-gray-200 focus:ring-2 focus:ring-blue-500 outline-none transition-all" />
+    </div>
+);
 
 export default function RegisterPage() {
     const [fullName, setFullName] = useState('');
@@ -13,9 +31,11 @@ export default function RegisterPage() {
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
+    
+    // Corrected: Use the client from the installed auth-helpers package
     const supabase = createClientComponentClient();
 
-    const handleSignUp = async (e: React.FormEvent) => {
+    const handleSignUp = async (e: FormEvent) => {
         e.preventDefault();
         setLoading(true);
         setError(null);
@@ -25,7 +45,6 @@ export default function RegisterPage() {
             email,
             password,
             options: {
-                // Pass the full name in the metadata to be used by our database trigger
                 data: {
                     full_name: fullName,
                 },
@@ -57,9 +76,31 @@ export default function RegisterPage() {
                         </div>
                     ) : (
                         <form onSubmit={handleSignUp} className="space-y-5">
-                            <InputField icon={<User />} type="text" value={fullName} onChange={e => setFullName(e.target.value)} placeholder="Full Name" required />
-                            <InputField icon={<AtSign />} type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="Email Address" required />
-                            <InputField icon={<Lock />} type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="Password (min. 6 characters)" required minLength={6} />
+                            <InputField 
+                                icon={<User />} 
+                                type="text" 
+                                value={fullName} 
+                                onChange={(e: ChangeEvent<HTMLInputElement>) => setFullName(e.target.value)} 
+                                placeholder="Full Name" 
+                                required 
+                            />
+                            <InputField 
+                                icon={<AtSign />} 
+                                type="email" 
+                                value={email} 
+                                onChange={(e: ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)} 
+                                placeholder="Email Address" 
+                                required 
+                            />
+                            <InputField 
+                                icon={<Lock />} 
+                                type="password" 
+                                value={password} 
+                                onChange={(e: ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)} 
+                                placeholder="Password (min. 6 characters)" 
+                                required 
+                                minLength={6} 
+                            />
                             
                             {error && <p className="text-red-600 flex items-center gap-2 text-sm"><AlertTriangle size={16}/> {error}</p>}
                             
@@ -77,12 +118,3 @@ export default function RegisterPage() {
     );
 }
 
-// Reusable Input Field Component for modern UI
-const InputField = ({ icon, ...props }: any) => (
-    <div className="relative">
-        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400">
-            {icon}
-        </div>
-        <input {...props} className="w-full h-12 pl-12 pr-4 rounded-lg bg-gray-50 border border-gray-200 focus:ring-2 focus:ring-blue-500 outline-none transition-all" />
-    </div>
-);
