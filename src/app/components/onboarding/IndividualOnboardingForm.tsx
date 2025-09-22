@@ -1,12 +1,12 @@
 "use client";
 
-// Final, Production-Ready Version
-
 import { useFormState, useFormStatus } from 'react-dom';
 import { motion } from 'framer-motion';
 import { User, Briefcase, FileText, AlertTriangle } from 'lucide-react';
-// Using a direct relative path for maximum reliability during builds
-import { completeIndividualOnboarding } from '../../onboarding/individual/actions';
+
+// --- THIS IS THE FIX ---
+// The path now correctly includes your '(auth)' route group folder.
+import { completeIndividualOnboarding } from '../../(auth)/onboarding/individual/actions';
 
 function SubmitButton() {
     const { pending } = useFormStatus();
