@@ -1,12 +1,13 @@
 "use client";
 
+// Final, Production-Ready Version
+
 import { useFormState, useFormStatus } from 'react-dom';
 import { motion } from 'framer-motion';
 import { User, Briefcase, FileText, AlertTriangle } from 'lucide-react';
-// Make sure this path is correct for your project structure
-import { completeIndividualOnboarding } from '@/app/onboarding/individual/actions';
+// Using a direct relative path for maximum reliability during builds
+import { completeIndividualOnboarding } from '../../onboarding/individual/actions';
 
-// A Submit Button that shows a loading state
 function SubmitButton() {
     const { pending } = useFormStatus();
     return (
@@ -21,8 +22,7 @@ function SubmitButton() {
 }
 
 export default function IndividualOnboardingForm() {
-    // THIS IS THE FIX: We use the useFormState hook here
-    const initialState = { error: null, success: false }; // Define the initial state
+    const initialState = { error: null };
     const [state, formAction] = useFormState(completeIndividualOnboarding, initialState);
 
     return (
@@ -37,7 +37,6 @@ export default function IndividualOnboardingForm() {
                     <p className="mt-2 text-gray-600">Tell us a bit about yourself to get started.</p>
                 </div>
 
-                {/* The form now uses the `formAction` from the hook */}
                 <form action={formAction} className="mt-8 space-y-5">
                     <div>
                         <label className="font-medium text-gray-700">Full Name</label>
@@ -63,7 +62,6 @@ export default function IndividualOnboardingForm() {
 
                     <SubmitButton />
 
-                    {/* This allows you to show server errors right here in the form */}
                     {state?.error && (
                         <div className="p-4 mt-4 bg-red-50 text-red-800 rounded-lg flex items-center gap-3">
                             <AlertTriangle />
