@@ -10,7 +10,10 @@ interface ActionState {
   error: string | null;
 }
 
-export async function completeIndividualOnboarding(prevState: ActionState, formData: FormData): Promise<ActionState> {
+export async function completeIndividualOnboarding(
+  prevState: ActionState, 
+  formData: FormData
+): Promise<ActionState> {
   const supabase = createServerActionClient({ cookies });
   const { data: { user } } = await supabase.auth.getUser();
 
@@ -25,8 +28,7 @@ export async function completeIndividualOnboarding(prevState: ActionState, formD
   const skills = formData.getAll("skills") as string[];
   const cv_url = formData.get("cv_url") as string;
 
-  // --- THIS IS THE FIX ---
-  // We now perform a single, powerful update on the 'profiles' table
+  // Update the 'profiles' table
   const { error } = await supabase
     .from("profiles")
     .update({ 
@@ -34,8 +36,8 @@ export async function completeIndividualOnboarding(prevState: ActionState, formD
         professional_title: professionalTitle,
         bio: bio,
         skills: skills,
-        resume_url: cv_url, // Make sure your column is named resume_url
-        onboarding_complete: true // This is the most important step
+        resume_url: cv_url, 
+        onboarding_complete: true 
     })
     .eq("id", user.id);
 
@@ -44,7 +46,7 @@ export async function completeIndividualOnboarding(prevState: ActionState, formD
     return { error: `Database Error: ${error.message}` };
   }
   
-  // On success, revalidate the dashboard path and redirect
+  // Revalidate dashboard and redirect
   revalidatePath("/dashboard");
   redirect("/dashboard");
 }
