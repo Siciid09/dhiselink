@@ -7,19 +7,16 @@ import { Home, Users, ChevronDown } from "lucide-react";
 
 export default function Header() {
   const [scrolled, setScrolled] = useState(false);
-
-  // Supabase client (basic type)
   const supabase = createClientComponentClient<{ public: any }>();
-
   const router = useRouter();
   const pathname = usePathname();
 
-  return ( 
+  return (
     <header className="p-4 bg-gray-100 flex justify-between items-center">
       <div className="flex items-center gap-4">
         <Home size={24} />
         <Users size={24} />
-        <span>Current Path: {pathname}</span>
+        <span>Path: {pathname}</span>
       </div>
       <button
         onClick={() => alert("Test button")}
