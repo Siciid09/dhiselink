@@ -5,7 +5,6 @@ import { usePathname, useRouter } from 'next/navigation';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { useEffect, useState, RefAttributes, ForwardRefExoticComponent } from 'react';
 import type { Session } from '@supabase/supabase-js';
-
 import { Menu, Transition } from '@headlessui/react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronDown, Briefcase, Building, Home, Info, Users, LucideProps, LogIn, UserPlus } from 'lucide-react';
@@ -35,7 +34,7 @@ const navItems: NavItem[] = [
     icon: Building,
     dropdown: [
       { name: 'Companies', href: '/companies', description: 'Leading private sector firms' },
-      { name: 'Universities', href: '/universities', description: 'Academic and research institutions' },
+      { name: 'Universities', href: '/universities', description: 'Academic & research institutions' },
       { name: 'Government & Others', href: '/government-ngos', description: 'Public sector & other entities' },
     ],
   },
@@ -71,7 +70,8 @@ export default function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
-  // The Supabase client is created without the <Database> generic
+  // --- THIS IS THE FIX ---
+  // We remove the explicit ': SupabaseClient' type annotation.
   const supabase = createClientComponentClient();
   const router = useRouter();
   const pathname = usePathname();
