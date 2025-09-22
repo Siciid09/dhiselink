@@ -4,7 +4,7 @@ import { useFormState, useFormStatus } from 'react-dom';
 import { motion } from 'framer-motion';
 import { User, Briefcase, FileText, AlertTriangle } from 'lucide-react';
 
-// --- THIS IS THE FIX ---
+// --- THIS IS THE FINAL PATH FIX ---
 // The path now correctly includes your '(auth)' route group folder.
 import { completeIndividualOnboarding } from '../../(auth)/onboarding/individual/actions';
 
@@ -41,35 +41,4 @@ export default function IndividualOnboardingForm() {
                     <div>
                         <label className="font-medium text-gray-700">Full Name</label>
                         <div className="relative mt-1">
-                            <User size={20} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
-                            <input name="full_name" required className="w-full h-12 pl-12 pr-4 rounded-lg bg-gray-50 border border-gray-200 focus:ring-2 focus:ring-blue-500" />
-                        </div>
-                    </div>
-                    <div>
-                        <label className="font-medium text-gray-700">Professional Title</label>
-                        <div className="relative mt-1">
-                            <Briefcase size={20} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
-                            <input name="professional_title" placeholder="e.g., Civil Engineer" required className="w-full h-12 pl-12 pr-4 rounded-lg bg-gray-50 border border-gray-200 focus:ring-2 focus:ring-blue-500" />
-                        </div>
-                    </div>
-                     <div>
-                        <label className="font-medium text-gray-700">Short Bio</label>
-                        <div className="relative mt-1">
-                            <FileText size={20} className="absolute left-4 top-4 text-gray-400" />
-                            <textarea name="bio" rows={4} placeholder="A brief summary of your experience and goals..." className="w-full pt-3 pl-12 pr-4 rounded-lg bg-gray-50 border border-gray-200 focus:ring-2 focus:ring-blue-500"></textarea>
-                        </div>
-                    </div>
-
-                    <SubmitButton />
-
-                    {state?.error && (
-                        <div className="p-4 mt-4 bg-red-50 text-red-800 rounded-lg flex items-center gap-3">
-                            <AlertTriangle />
-                            <p>{state.error}</p>
-                        </div>
-                    )}
-                </form>
-            </motion.div>
-        </div>
-    );
-}
+                            <User size={20} className="absolute left-4 top-1/2 -translate-y-1/
