@@ -1,66 +1,54 @@
-// File Path: app/admin/page.tsx
+import { createServerComponentClient } from "@supabase/auth-helpers-nextjs";
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
+import AdminDashboardClient from "./admin-dashboard-client";
 
-"use client"; // Recharts requires client-side rendering
+// These two lines are the fix. They force Next.js to always render this page dynamically.
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { Users, Building, Briefcase, Lightbulb } from 'lucide-react';
-import React from 'react'; // Ensure React is imported for JSX
+export default async function AdminPage() {
+  const supabase = createServerComponentClient({ cookies });
 
-// Sample data - in a real application, you would fetch this from a secure API endpoint.
-const analyticsData = {
-    totalUsers: 1250,
-    totalOrganizations: 150,
-    totalJobs: 620,
-    totalIdeas: 85,
-    userSignups: [
-        { name: 'Jan', users: 65 }, { name: 'Feb', users: 59 }, { name: 'Mar', users: 80 },
-        { name: 'Apr', users: 81 }, { name: 'May', users: 56 }, { name: 'Jun', users: 55 },
-    ],
-};
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) {
+    redirect("/login");
+  }
 
-// Reusable Stat Card Component
-const StatCard = ({ title, value, icon }: { title: string, value: string, icon: React.ReactNode }) => (
-    <div className="bg-white p-6 rounded-lg shadow-md border flex items-center justify-between">
-        <div>
-            <p className="text-sm font-medium text-gray-500">{title}</p>
-            <p className="text-3xl font-bold">{value}</p>
-        </div>
-        <div className="bg-blue-100 text-blue-600 p-3 rounded-full">
-            {icon}
-        </div>
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('is_admin')
+    .eq('id', user.id)
+    .single();
+
+  if (!profile?.is_admin) {
+    redirect("/dashboard");
+  }
+
+  // Fetch all data for the dashboard
+  const { data: profiles } = await supabase.from("profiles").select('*');
+  const { data: jobs } = await supabase.from("jobs").select('*, profiles(organization_name)');
+  const { count: userCount } = await supabase.from("profiles").select('*', { count: 'exact', head: true });
+  const { count: jobCount } = await supabase.from("jobs").select('*', { count: 'exact', head: true });
+  
+  const stats = {
+    userCount: userCount ?? 0,
+    jobCount: jobCount ?? 0,
+    orgCount: profiles?.filter(p => p.role !== 'individual').length ?? 0,
+  };
+
+  return (
+    <div className="flex">
+        {/* Assuming you have a sidebar component for your admin layout */}
+        {/* <AdminSidebar /> */}
+        <main className="flex-1 p-4 sm:p-6 lg:p-8">
+            <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 mb-6">Admin Headquarters</h1>
+            <AdminDashboardClient
+                initialProfiles={profiles || []}
+                initialJobs={jobs || []}
+                initialStats={stats}
+            />
+        </main>
     </div>
-);
-
-// The main component for the admin dashboard page.
-// This MUST be the default export.
-export default function AdminDashboardPage() {
-    return (
-        <div className="space-y-8 py-8">
-            <h1 className="text-3xl font-bold">Admin Overview</h1>
-            
-            {/* Stat Cards */}
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                <StatCard title="Total Users" value={analyticsData.totalUsers.toLocaleString()} icon={<Users />} />
-                <StatCard title="Total Organizations" value={analyticsData.totalOrganizations.toLocaleString()} icon={<Building />} />
-                <StatCard title="Active Jobs" value={analyticsData.totalJobs.toLocaleString()} icon={<Briefcase />} />
-                <StatCard title="Submitted Ideas" value={analyticsData.totalIdeas.toLocaleString()} icon={<Lightbulb />} />
-            </div>
-
-            {/* Charts */}
-            <div className="bg-white p-6 rounded-lg shadow-md border">
-                 <h2 className="text-xl font-semibold mb-4">New User Signups (Last 6 Months)</h2>
-                 <div style={{ width: '100%', height: 300 }}>
-                    <ResponsiveContainer>
-                        <BarChart data={analyticsData.userSignups}>
-                            <CartesianGrid strokeDasharray="3 3" />
-                            <XAxis dataKey="name" />
-                            <YAxis />
-                            <Tooltip wrapperClassName="!bg-white !border-gray-300 rounded-lg shadow-lg" />
-                            <Bar dataKey="users" fill="#3b82f6" radius={[4, 4, 0, 0]} />
-                        </BarChart>
-                    </ResponsiveContainer>
-                 </div>
-            </div>
-        </div>
-    );
+  );
 }

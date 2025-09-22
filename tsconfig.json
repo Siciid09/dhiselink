@@ -17,9 +17,12 @@
         "name": "next"
       }
     ],
+    // --- THIS IS THE CRUCIAL PART ---
+    "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"]
     }
+    // --- END OF CRUCIAL PART ---
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
   "exclude": ["node_modules"]

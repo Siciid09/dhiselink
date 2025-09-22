@@ -1,134 +1,90 @@
-// File Path: app/opportunities/page.tsx
+import { createServerComponentClient } from '@supabase/auth-helpers-nextjs';
+import { cookies } from 'next/headers';
+import Link from 'next/link';
+import { MapPin, Briefcase, Building } from 'lucide-react';
+import SearchFilter from './search-filter'; // Import the new search component
 
-"use client";
+export const dynamic = 'force-dynamic';
 
-import { useState, useEffect, useMemo } from 'react';
-import { motion } from 'framer-motion';
-import { MapPin, Clock, Building, Search, Briefcase, Star, ChevronDown } from 'lucide-react';
-
-export default function OpportunitiesPage() {
-    const [jobs, setJobs] = useState<any[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
+// The page now accepts `searchParams` to get the URL query
+export default async function OpportunitiesPage({
+  searchParams,
+}: {
+  searchParams?: {
+    q?: string;
+    location?: string;
+    type?: string;
+  };
+}) {
+    const supabase = createServerComponentClient({ cookies });
     
-    // State for filters
-    const [searchTerm, setSearchTerm] = useState('');
-    const [jobType, setJobType] = useState('all');
+    // Start building the query
+    let query = supabase
+        .from('jobs')
+        .select('*')
+        .eq('status', 'active');
 
-    useEffect(() => {
-        async function fetchJobs() {
-            setLoading(true);
-            setError(null);
-            try {
-                const response = await fetch('/api/opportunities');
-                if (!response.ok) throw new Error('Failed to fetch jobs.');
-                const data = await response.json();
-                if (Array.isArray(data)) {
-                    setJobs(data);
-                } else {
-                    throw new Error('Invalid data format received.');
-                }
-            } catch (err) {
-                setError((err as Error).message);
-            } finally {
-                setLoading(false);
-            }
-        }
-        fetchJobs();
-    }, []);
+    // Add filters to the query based on searchParams
+    if (searchParams?.q) {
+      query = query.ilike('title', `%${searchParams.q}%`);
+    }
+    if (searchParams?.location) {
+      query = query.ilike('location', `%${searchParams.location}%`);
+    }
+    if (searchParams?.type) {
+      query = query.eq('type', searchParams.type);
+    }
 
-    const filteredJobs = useMemo(() => {
-        return jobs.filter(job => {
-            const matchesSearch = job.title.toLowerCase().includes(searchTerm.toLowerCase()) || job.organization_name.toLowerCase().includes(searchTerm.toLowerCase());
-            const matchesType = jobType === 'all' || job.type === jobType;
-            return matchesSearch && matchesType;
-        });
-    }, [jobs, searchTerm, jobType]);
-
-    const JobCard = ({ job }: { job: any }) => (
-        <a href={`/opportunities/${job.id}`} className="block group">
-            <motion.div 
-                whileHover={{ y: -5, boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }}
-                className="bg-white rounded-lg border p-6 h-full flex flex-col transition-shadow duration-300 relative overflow-hidden"
-            >
-                {job.featured && <Star size={16} className="absolute top-4 right-4 text-yellow-400 fill-current" />}
-                <div className="flex items-start gap-4">
-                    <img src={job.organization_logo_url || `https://placehold.co/64x64/e2e8f0/4a5568?text=${job.organization_name.charAt(0)}`} alt={`${job.organization_name} logo`} className="h-12 w-12 object-contain rounded-md border p-1 flex-shrink-0 bg-white" />
-                    <div>
-                        <p className="text-sm font-semibold text-blue-600">{job.organization_name}</p>
-                        <h3 className="font-bold text-lg text-gray-900">{job.title}</h3>
-                    </div>
-                </div>
-                <p className="text-sm text-gray-600 my-3 flex-grow">{job.short_description}</p>
-                <div className="flex flex-wrap gap-2 my-3">
-                    {job.tags?.map((tag: string) => <span key={tag} className="bg-gray-100 text-gray-700 text-xs font-medium px-2 py-1 rounded-full">{tag}</span>)}
-                </div>
-                <div className="text-sm text-gray-500 mt-auto pt-3 border-t flex items-center justify-between">
-                    <span className="flex items-center gap-1.5"><MapPin size={14} /> {job.location}</span>
-                    <span className="flex items-center gap-1.5 capitalize"><Briefcase size={14} /> {job.type}</span>
-                </div>
-            </motion.div>
-        </a>
-    );
+    // Execute the final query
+    const { data: jobs, error } = await query.order('created_at', { ascending: false });
 
     return (
-        <div className="bg-gray-50 min-h-screen">
-            <div className="container mx-auto px-6 pt-32 pb-24">
-                <header className="text-center mb-12">
-                    <h1 className="text-4xl md:text-5xl font-extrabold tracking-tighter text-gray-900">Find Your Next Opportunity</h1>
-                    <p className="mt-3 text-lg text-gray-600 max-w-2xl mx-auto">Browse roles from leading organizations dedicated to building a brighter future for Somaliland.</p>
+        <div className="bg-slate-50 min-h-screen">
+            <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
+                <header className="text-center mb-10">
+                    <h1 className="text-4xl md:text-5xl font-extrabold tracking-tighter text-slate-900">Find Your Next Opportunity</h1>
+                    <p className="mt-3 text-lg text-slate-600 max-w-2xl mx-auto">Browse roles from leading organizations in the region.</p>
                 </header>
                 
-                <div className="grid lg:grid-cols-4 gap-8">
-                    {/* --- Filter Sidebar --- */}
-                    <aside className="lg:col-span-1 bg-white p-6 rounded-lg border shadow-sm h-fit sticky top-28">
-                        <h3 className="font-bold text-lg mb-4">Filter Opportunities</h3>
-                        <div className="space-y-4">
-                            <div className="relative">
-                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                                <input 
-                                    type="text" 
-                                    placeholder="Search by title or company..." 
-                                    value={searchTerm}
-                                    onChange={e => setSearchTerm(e.target.value)}
-                                    className="w-full h-12 pl-10 pr-4 rounded-lg bg-gray-100 border-transparent focus:ring-2 focus:ring-blue-500"
-                                />
-                            </div>
-                            <div>
-                                <label className="text-sm font-medium text-gray-700">Job Type</label>
-                                <select 
-                                    value={jobType}
-                                    onChange={e => setJobType(e.target.value)}
-                                    className="w-full mt-1 h-12 px-3 rounded-lg bg-gray-100 border-transparent focus:ring-2 focus:ring-blue-500"
-                                >
-                                    <option value="all">All Types</option>
-                                    <option value="full-time">Full-time</option>
-                                    <option value="part-time">Part-time</option>
-                                    <option value="contract">Contract</option>
-                                    <option value="internship">Internship</option>
-                                </select>
-                            </div>
-                        </div>
-                    </aside>
+                {/* Render the Search & Filter Component */}
+                <SearchFilter />
 
-                    {/* --- Job Listings --- */}
-                    <main className="lg:col-span-3">
-                        {loading && <p className="text-center">Loading opportunities...</p>}
-                        {error && <p className="text-center text-red-500 p-4 bg-red-50 rounded-lg">{error}</p>}
-                        {!loading && !error && (
-                             filteredJobs.length > 0 ? (
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    {filteredJobs.map(job => <JobCard key={job.id} job={job} />)}
-                                </div>
-                            ) : (
-                                <div className="text-center bg-white p-12 rounded-lg border">
-                                    <h3 className="font-bold text-xl mb-2">No Matching Opportunities Found</h3>
-                                    <p className="text-gray-600">Try adjusting your search or filter criteria.</p>
-                                </div>
-                            )
-                        )}
-                    </main>
-                </div>
+                {/* Job Listings */}
+                <main>
+                    {error && <p className="text-center text-red-500">Could not fetch jobs. Please try again later.</p>}
+                    
+                    {!error && jobs && jobs.length > 0 ? (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {jobs.map(job => (
+                                <Link href={`/opportunities/${job.id}`} key={job.id} className="block group">
+                                  <div className="bg-white rounded-xl border border-slate-200 p-6 h-full flex flex-col transition-all duration-300 hover:border-blue-500 hover:shadow-lg hover:-translate-y-1">
+                                    <div className="flex items-center gap-4 mb-4">
+                                      <img 
+                                        src={job.organization_logo_url || `https://api.dicebear.com/8.x/initials/svg?seed=${job.organization_name}`} 
+                                        alt={`${job.organization_name} logo`} 
+                                        className="h-14 w-14 object-contain rounded-lg border p-1"
+                                      />
+                                      <div>
+                                        <p className="font-semibold text-slate-800 text-lg group-hover:text-blue-600 transition-colors">{job.title}</p>
+                                        <p className="text-sm text-slate-600 flex items-center gap-1.5"><Building size={14}/> {job.organization_name}</p>
+                                      </div>
+                                    </div>
+                                    <p className="text-sm text-slate-600 mb-4 flex-grow line-clamp-3">{job.short_description || job.description}</p>
+                                    <div className="mt-auto pt-4 border-t border-slate-100 flex items-center gap-4 text-sm text-slate-500">
+                                      <span className="flex items-center gap-1.5 bg-slate-100 px-2 py-1 rounded-md"><MapPin size={14} /> {job.location}</span>
+                                      <span className="flex items-center gap-1.5 bg-slate-100 px-2 py-1 rounded-md capitalize"><Briefcase size={14} /> {job.type}</span>
+                                    </div>
+                                  </div>
+                                </Link>
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="text-center bg-white p-12 rounded-lg border border-dashed">
+                            <h3 className="font-bold text-xl mb-2 text-slate-700">No Matching Opportunities Found</h3>
+                            <p className="text-slate-600">Try adjusting your search or filter criteria.</p>
+                        </div>
+                    )}
+                </main>
             </div>
         </div>
     );

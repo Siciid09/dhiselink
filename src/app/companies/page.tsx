@@ -1,125 +1,112 @@
-// File Path: app/companies/page.tsx
-
 "use client";
 
-import { useState, useEffect, FC } from 'react';
+import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { Building, Briefcase, MapPin, BookOpen, Heart, Flag } from 'lucide-react';
+import { Building, MapPin } from 'lucide-react';
 
-// --- Main Companies Page Component ---
+// Define the shape of a company profile for type safety
+type CompanyProfile = {
+  id: string;
+  organization_name: string;
+  bio: string | null;
+  location: string | null;
+  logo_url: string | null;
+};
+
 export default function CompaniesPage() {
-    // --- State Management ---
-    const [organizations, setOrganizations] = useState<any[]>([]);
+    const [companies, setCompanies] = useState<CompanyProfile[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
-    // --- Data Fetching ---
     useEffect(() => {
-        const fetchOrganizations = async () => {
+        const fetchCompanies = async () => {
             setLoading(true);
             setError(null);
             try {
-                // This API route should fetch all profiles that are of type 'organization'
-                const response = await fetch('/api/organizations'); 
-                if (!response.ok) {
-                    throw new Error('Failed to fetch organizations.');
-                }
+                const response = await fetch('/api/companies');
+                if (!response.ok) throw new Error('Failed to fetch company data.');
                 const data = await response.json();
-                if (Array.isArray(data)) {
-                    setOrganizations(data);
-                } else {
-                     throw new Error('Invalid data format received from server.');
-                }
-            } catch (err: any) {
-                setError(err.message);
+                setCompanies(data);
+            } catch (err) {
+                console.error("Failed to fetch companies:", err);
+                setError((err as Error).message);
             } finally {
                 setLoading(false);
             }
         };
-
-        fetchOrganizations();
+        fetchCompanies();
     }, []);
 
-    // --- UI Render ---
+    const containerVariants = {
+      hidden: { opacity: 0 },
+      visible: { opacity: 1, transition: { staggerChildren: 0.1 } },
+    };
+
+    const itemVariants = {
+      hidden: { opacity: 0, y: 20 },
+      visible: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 100 } },
+    };
+
     return (
-        <div className="bg-white min-h-screen pt-32 pb-24">
-            <div className="container mx-auto px-6">
-                {/* --- Page Header --- */}
+        <div className="bg-slate-50 min-h-screen pt-24 md:pt-32">
+            <div className="container mx-auto px-4 sm:px-6 lg:px-8 pb-24">
                 <header className="text-center mb-12">
-                    <h1 className="text-4xl md:text-5xl font-extrabold tracking-tighter text-gray-900">Our Network of Organizations</h1>
-                    <p className="mt-3 text-lg text-gray-600 max-w-2xl mx-auto">Discover the companies, NGOs, universities, and government agencies driving development in Somaliland.</p>
+                    <h1 className="text-4xl md:text-5xl font-extrabold tracking-tighter text-slate-900">
+                        Our Network of Companies
+                    </h1>
+                    <p className="mt-4 text-lg text-slate-600 max-w-2xl mx-auto">
+                        Discover the innovative companies driving growth and creating opportunities.
+                    </p>
                 </header>
-
-                {/* --- Loading & Error States --- */}
-                {loading && <p className="text-center">Loading organizations...</p>}
-                {error && <p className="text-center text-red-600 bg-red-50 p-4 rounded-lg">Error: {error}</p>}
-
-                {/* --- Organizations Grid --- */}
-                {!loading && !error && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                        {organizations.length > 0 ? (
-                            organizations.map((org, index) => (
-                                <OrganizationCard key={org.id} org={org} index={index} />
-                            ))
+                
+                <main>
+                    {loading && <p className="text-center text-slate-500">Loading companies...</p>}
+                    {error && <p className="text-center text-red-500">{error}</p>}
+                    
+                    {!loading && !error && (
+                        companies.length > 0 ? (
+                            <motion.div 
+                                variants={containerVariants}
+                                initial="hidden"
+                                animate="visible"
+                                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
+                            >
+                                {companies.map(company => (
+                                    <motion.div key={company.id} variants={itemVariants}>
+                                        <Link href={`/organizations/${company.id}`} className="block group">
+                                            <div className="bg-white rounded-2xl border border-slate-200 h-full flex flex-col p-6 transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
+                                                <div className="flex items-center gap-4 mb-4">
+                                                    <img
+                                                        src={company.logo_url || `https://api.dicebear.com/8.x/initials/svg?seed=${company.organization_name}`}
+                                                        alt={`${company.organization_name} logo`}
+                                                        className="h-16 w-16 object-contain rounded-lg border p-1"
+                                                    />
+                                                    <div>
+                                                        <h3 className="text-xl font-bold text-slate-900 group-hover:text-blue-600 transition-colors">
+                                                            {company.organization_name}
+                                                        </h3>
+                                                    </div>
+                                                </div>
+                                                <p className="text-sm text-slate-600 flex-grow line-clamp-3">
+                                                    {company.bio || 'No summary available.'}
+                                                </p>
+                                                <div className="mt-4 pt-4 border-t border-slate-100 text-sm text-slate-500">
+                                                  <span className="inline-flex items-center gap-1.5">
+                                                    <MapPin size={14} /> {company.location || 'Not specified'}
+                                                  </span>
+                                                </div>
+                                            </div>
+                                        </Link>
+                                    </motion.div>
+                                ))}
+                            </motion.div>
                         ) : (
-                            <p className="col-span-full text-center text-gray-500">No organizations found.</p>
-                        )}
-                    </div>
-                )}
+                            <p className="text-center text-slate-500">No companies have registered yet. Check back soon!</p>
+                        )
+                    )}
+                </main>
             </div>
         </div>
     );
 }
-
-// --- Individual Organization Card Component ---
-const OrganizationCard: FC<{ org: any, index: number }> = ({ org, index }) => {
-    // Determine the icon based on account_type
-    const getIcon = (type: string) => {
-        // This mapping should align with your database values
-        switch(type) {
-            case 'company': return <Briefcase className="text-blue-500" />;
-            case 'university': return <BookOpen className="text-purple-500" />;
-            case 'ngo': return <Heart className="text-red-500" />;
-            case 'government': return <Flag className="text-gray-700" />;
-            default: return <Building className="text-gray-500" />;
-        }
-    }
-
-    // A simple function to get the correct type name for display
-    const getOrgTypeName = (type: string) => {
-        if (!type) return 'Organization';
-        return type.replace('_', ' ');
-    }
-
-    return (
-        <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.05 }}
-        >
-            <a href={`/organizations/${org.id}`} className="block bg-white rounded-lg border h-full shadow-md hover:shadow-xl hover:border-blue-500 transition-all duration-300 group">
-                <div className="p-6 flex flex-col h-full">
-                    <div className="flex items-start gap-4 mb-4">
-                        <img 
-                            src={org.logo_url || `https://placehold.co/80x80/e2e8f0/4a5568?text=${(org.name || 'O').charAt(0)}`} 
-                            alt={`${org.name} logo`}
-                            className="h-16 w-16 object-contain rounded-md border p-1 bg-white flex-shrink-0"
-                        />
-                        <div>
-                            <h3 className="font-bold text-lg text-gray-900 group-hover:text-blue-600 transition-colors">{org.name}</h3>
-                            <p className="text-sm text-gray-500 capitalize flex items-center gap-1.5">
-                                {getIcon(org.account_type)}
-                                {getOrgTypeName(org.account_type)}
-                            </p>
-                        </div>
-                    </div>
-                    <p className="text-sm text-gray-600 mb-4 flex-grow">{org.bio || 'No summary available.'}</p>
-                    <div className="mt-auto border-t pt-4 text-xs text-gray-500 space-y-2">
-                        {org.industry && <p className="flex items-center gap-2"><Briefcase size={14}/> {org.industry}</p>}
-                        {org.location && <p className="flex items-center gap-2"><MapPin size={14}/> {org.location}</p>}
-                    </div>
-                </div>
-            </a>
-        </motion.div>
-    );
-};

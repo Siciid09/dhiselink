@@ -1,54 +1,39 @@
-// File Path: app/api/ideas/route.ts
-
-import { NextResponse } from 'next/server';
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
+import { NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 
-// This is the public GET request to fetch all ideas (already works)
-export async function GET() {
-    const supabase = createRouteHandlerClient({ cookies });
-    const { data, error } = await supabase
-        .from('ideas')
-        .select(`*, profiles(full_name)`);
-    
-    if (error) {
-        return NextResponse.json({ error: error.message }, { status: 500 });
-    }
-    return NextResponse.json(data);
-}
-
-// This is the PROTECTED POST request to create a new idea
+// This function handles the POST request from your "Submit Idea" form
 export async function POST(request: Request) {
-    const body = await request.json();
-    const supabase = createRouteHandlerClient({ cookies });
+  const ideaData = await request.json();
+  const supabase = createRouteHandlerClient({ cookies });
+  
+  // First, check if the user is logged in
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) {
+    return NextResponse.json({ error: 'You must be logged in to submit an idea.' }, { status: 401 });
+  }
 
-    // 1. Get the current user's session from the browser's cookies
-    const { data: { session } } = await supabase.auth.getSession();
+  // Insert the new idea into the database, linking it to the logged-in user
+  const { data, error } = await supabase
+    .from('ideas')
+    .insert({
+      ...ideaData, // The title, summary, etc. from the form
+      author_id: session.user.id, // Associate the idea with the current user
+    })
+    .select()
+    .single();
 
-    if (!session) {
-        return NextResponse.json({ error: 'You must be logged in to submit an idea.' }, { status: 401 });
-    }
+  if (error) {
+    console.error("Supabase insert error:", error);
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
 
-    // 2. Insert the new idea, linking it to the user's ID
-    const { data, error } = await supabase
-        .from('ideas')
-        .insert({
-            title: body.title,
-            category: body.category,
-            summary: body.summary,
-            details: body.details,
-            seeking: body.seeking,
-            status: 'Seeking Collaborators',
-            author_id: session.user.id // Link to the logged-in user
-        })
-        .select()
-        .single();
-    
-    if (error) {
-        console.error("Supabase error creating idea:", error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
-    }
+  // --- THIS IS THE FIX ---
+  // After a successful insert, we tell Next.js to clear the cache 
+  // for the main ideas list page.
+  revalidatePath('/ideas');
 
-    // 3. Return the newly created idea
-    return NextResponse.json(data);
+  // Return the newly created idea to the form
+  return NextResponse.json(data);
 }

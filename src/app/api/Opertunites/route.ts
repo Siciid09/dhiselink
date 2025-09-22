@@ -1,25 +1,40 @@
-// File Path: app/api/opportunities/route.ts
-
+import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
+import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
 
-// Initialize Supabase client
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
+export const dynamic = 'force-dynamic';
 
 export async function GET() {
-    const { data, error } = await supabase
-        .from('jobs')
-        .select('*')
-        .eq('status', 'active') // Only fetch active jobs
-        .order('featured', { ascending: false }) // Show featured jobs first
-        .order('created_at', { ascending: false }); // Then sort by newest
+  const supabase = createRouteHandlerClient({ cookies });
 
+  try {
+    const { data, error } = await supabase
+      .from('jobs')
+      .select('*')
+      .eq('status', 'active')
+      .order('created_at', { ascending: false });
+
+    // If Supabase returns an error, we throw it to the catch block
     if (error) {
-        console.error("Supabase error fetching opportunities:", error.message);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+      throw error;
     }
 
     return NextResponse.json(data);
+
+  } catch (error: any) {
+    // THIS IS THE MODIFIED PART
+    // It logs the full error to your server console
+    console.error("Full API Error:", error); 
+
+    // It returns the full error details in the response
+    return NextResponse.json(
+      { 
+        message: "API failed to fetch jobs. See details.",
+        details: error.message,
+        hint: error.hint,
+        code: error.code,
+      }, 
+      { status: 500 }
+    );
+  }
 }

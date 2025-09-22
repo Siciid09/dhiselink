@@ -1,57 +1,11 @@
 // File Path: app/layout.tsx
+
 import type { Metadata } from "next";
 import Script from "next/script";
 
-// --- Placeholder Components ---
-const Header = () => (
-  <header className="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-lg border-b border-gray-200/80">
-    <nav className="container mx-auto px-6 py-4 flex justify-between items-center">
-      <a href="/" className="text-2xl font-black tracking-tighter text-gray-900">
-        Dhiselink
-      </a>
-      <div className="hidden md:flex items-center space-x-8">
-        <a href="/about" className="font-bold text-gray-700 hover:text-blue-600">About</a>
-        <a href="/companies" className="font-bold text-gray-700 hover:text-blue-600">Organizations</a>
-        <a href="/opportunities" className="font-bold text-gray-700 hover:text-blue-600">Opportunities</a>
-        <a href="/contact" className="font-bold text-gray-700 hover:text-blue-600">Contact</a>
-      </div>
-      <a href="/register" className="bg-blue-600 text-white text-sm font-bold px-6 py-3 rounded-md shadow-lg hover:shadow-xl transition-shadow">
-        Join Dhiselink
-      </a>
-    </nav>
-  </header>
-);
-
-const Footer = () => (
-  <footer className="bg-gray-900 text-white">
-    <div className="container mx-auto px-6 py-12">
-      <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-        <div className="col-span-full lg:col-span-2">
-          <h3 className="text-xl font-bold mb-4">Dhiselink</h3>
-          <p className="text-gray-400 max-w-sm">Connecting Somaliland&apos;s talent with opportunities to build a prosperous future.</p>
-        </div>
-        <div>
-          <h4 className="font-semibold text-white mb-4">Sitemap</h4>
-          <ul className="space-y-2">
-            <li><a href="/about" className="text-gray-400 hover:text-blue-400">About</a></li>
-            <li><a href="/professionals" className="text-gray-400 hover:text-blue-400">Professionals</a></li>
-            <li><a href="/opportunities" className="text-gray-400 hover:text-blue-400">Opportunities</a></li>
-          </ul>
-        </div>
-        <div>
-          <h4 className="font-semibold text-white mb-4">Legal</h4>
-          <ul className="space-y-2">
-            <li><a href="#" className="text-gray-400 hover:text-blue-400">Privacy Policy</a></li>
-            <li><a href="#" className="text-gray-400 hover:text-blue-400">Terms of Service</a></li>
-          </ul>
-        </div>
-      </div>
-      <div className="mt-12 pt-8 border-t border-gray-700 text-center text-gray-500 text-sm">
-        <p>&copy; {new Date().getFullYear()} Dhiselink. All rights reserved.</p>
-      </div>
-    </div>
-  </footer>
-);
+// 1. Correctly import your external Header and Footer components
+import Header from '@/components/header';
+import Footer from '@/components/footer';
 
 export const metadata: Metadata = {
   title: "Dhiselink - Connecting Talent with Opportunity in Somaliland",
@@ -61,18 +15,22 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
+      {/* 2. Your original <head> tag with Google Fonts is restored */}
       <head>
-        {/* Tailwind and Fonts */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
       </head>
       <body>
-        <Header />
-        <main>{children}</main>
-        <Footer />
+        <Header /> {/* This now uses your new, modern header */}
 
-        {/* Scripts using Next.js Script component */}
+        {/* This 'pt-20' class is important. It adds padding to the top of the page 
+            so your content isn't hidden underneath the sticky header. */}
+        <main className="pt-20">{children}</main>
+
+        <Footer /> {/* This now uses your footer file */}
+
+        {/* 3. Your original Script tags are restored */}
         <Script src="https://cdn.tailwindcss.com" strategy="beforeInteractive" />
         <Script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" strategy="afterInteractive" />
       </body>

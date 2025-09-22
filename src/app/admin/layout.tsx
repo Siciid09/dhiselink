@@ -1,48 +1,39 @@
-// File Path: app/admin/layout.tsx
-
-import { createServerClient } from '@supabase/ssr';
+import { createServerComponentClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
-import { AdminSidebar } from './_components/AdminSidebar';
+import { AdminSidebar } from '@/components/AdminSidebar';
 
 export default async function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const cookieStore = cookies();
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    { cookies: { get: (name: string) => cookieStore.get(name)?.value } }
-  );
+  const supabase = createServerComponentClient({ cookies });
 
-  const { data: { session } } = await supabase.auth.getSession();
-
-  // 1. Check if user is logged in
-  if (!session) {
-    redirect('/auth/login');
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) {
+    redirect("/login");
   }
 
-  // 2. Check if the user is an admin
+  // --- THIS IS THE CORRECTED, DATABASE-DRIVEN ADMIN CHECK ---
   const { data: profile } = await supabase
     .from('profiles')
-    .select('role')
-    .eq('id', session.user.id)
+    .select('is_admin')
+    .eq('id', user.id)
     .single();
 
-  if (profile?.role !== 'admin') {
-    // If not an admin, redirect to the main dashboard
-    redirect('/dashboard');
+  if (!profile?.is_admin) {
+    // If the logged-in user's profile does not have is_admin: true, redirect.
+    redirect("/dashboard");
   }
 
-  // If they are an admin, show the admin layout
+  // If the check passes, the layout and the page inside it will render.
   return (
-    <div className="flex min-h-screen w-full bg-gray-100/40">
-        <AdminSidebar />
-        <main className="flex flex-col flex-1 gap-4 p-4 sm:px-6 sm:py-0 md:gap-8">
-            {children}
-        </main>
+    <div className="flex h-screen bg-slate-50">
+      <AdminSidebar />
+      <main className="flex-1 overflow-y-auto">
+        {children}
+      </main>
     </div>
   );
 }
