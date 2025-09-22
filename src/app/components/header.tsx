@@ -3,17 +3,12 @@
 import { useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
-import {
-  Home,
-  Users,
-  ChevronDown,
-  LucideProps
-} from "lucide-react";
+import { Home, Users, ChevronDown } from "lucide-react";
 
 export default function Header() {
   const [scrolled, setScrolled] = useState(false);
 
-  // Supabase client
+  // Supabase client (basic type)
   const supabase = createClientComponentClient<{ public: any }>();
 
   const router = useRouter();
@@ -27,7 +22,7 @@ export default function Header() {
         <span>Current Path: {pathname}</span>
       </div>
       <button
-        onClick={() => alert("Testing button")}
+        onClick={() => alert("Test button")}
         className="px-4 py-2 bg-blue-500 text-white rounded"
       >
         Test
