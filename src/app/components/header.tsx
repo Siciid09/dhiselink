@@ -14,7 +14,7 @@ export default function Header() {
   const router = useRouter();
   const pathname = usePathname();
 
-  return (
+  return ( 
     <header className="p-4 bg-gray-100 flex justify-between items-center">
       <div className="flex items-center gap-4">
         <Home size={24} />
