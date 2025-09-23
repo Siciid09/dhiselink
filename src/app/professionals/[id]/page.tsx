@@ -1,109 +1,76 @@
-// File Path: app/professionals/[id]/page.tsx
+import { createServerComponentClient } from '@supabase/auth-helpers-nextjs';
+import { cookies } from 'next/headers';
+import { notFound } from 'next/navigation';
+import { Mail, Globe, Linkedin, Github, FileText, MapPin } from 'lucide-react';
+import Link from 'next/link';
 
-"use client";
+async function getProfile(id: string) {
+    const supabase = createServerComponentClient({ cookies });
+    const { data: profile } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', id)
+        .eq('role', 'individual')
+        .single();
+    return profile;
+}
 
-import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { Briefcase, MapPin, Mail, Globe, Lightbulb } from 'lucide-react';
+export default async function ProfessionalDetailPage({ params }: { params: { id: string } }) {
+    const profile = await getProfile(params.id);
+    if (!profile) notFound();
 
-export default function ProfessionalDetailPage({ params }: { params: { id: string } }) {
-    const [profile, setProfile] = useState<any>(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
-
-    useEffect(() => {
-        if (!params.id) return;
-        const fetchProfile = async () => {
-            setLoading(true);
-            try {
-                const res = await fetch(`/api/professionals/${params.id}`);
-                if (!res.ok) throw new Error('Professional not found');
-                const data = await res.json();
-                setProfile(data);
-            } catch (err: any) {
-                setError(err.message);
-            } finally {
-                setLoading(false);
-            }
-        };
-        fetchProfile();
-    }, [params.id]);
-
-    if (loading) return <div className="pt-40 text-center">Loading profile...</div>;
-    if (error) return <div className="pt-40 text-center text-red-600">{error}</div>;
-    if (!profile) return <div className="pt-40 text-center">Could not find professional profile.</div>;
+    const socialLinks = [
+        { href: profile.website_url, icon: Globe, label: "Website" },
+        { href: profile.linkedin_url, icon: Linkedin, label: "LinkedIn" },
+        { href: profile.github_url, icon: Github, label: "GitHub" },
+    ].filter(link => link.href);
 
     return (
-        <div className="bg-gray-50 min-h-screen">
-            <div className="container mx-auto px-6 py-32">
-                <div className="max-w-4xl mx-auto">
-                    {/* --- Profile Header --- */}
-                    <motion.div 
-                        initial={{ opacity: 0, y: -20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="bg-white p-8 rounded-lg shadow-lg border flex flex-col md:flex-row items-center gap-8"
-                    >
-                        <img 
-                            src={profile.avatar_url || `https://ui-avatars.com/api/?name=${profile.full_name?.replace(' ', '+')}&size=128&background=EBF4FF&color=3B82F6&bold=true`}
-                            alt={profile.full_name}
-                            className="w-32 h-32 rounded-full border-4 border-blue-100 shadow-md flex-shrink-0"
-                        />
-                        <div className="text-center md:text-left">
-                            <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-gray-900">{profile.full_name}</h1>
-                            <p className="text-xl font-medium text-blue-600 mt-1">{profile.title}</p>
-                            <div className="flex items-center justify-center md:justify-start gap-6 text-sm text-gray-500 mt-3">
-                                {profile.location && <span className="flex items-center gap-1.5"><MapPin size={14} /> {profile.location}</span>}
-                                {profile.email && <span className="flex items-center gap-1.5"><Mail size={14} /> {profile.email}</span>}
-                                {profile.website && <a href={profile.website} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 hover:text-blue-600"><Globe size={14} /> Website</a>}
-                            </div>
+        <div className="bg-slate-50 min-h-screen">
+            <div className="container mx-auto max-w-5xl py-24 px-4">
+                {/* --- Banner Image --- */}
+                <div className="h-48 md:h-64 bg-slate-200 rounded-2xl relative mb-[-80px] overflow-hidden">
+                    {profile.banner_url && <img src={profile.banner_url} alt="Cover photo" className="w-full h-full object-cover" />}
+                </div>
+
+                <div className="relative bg-white rounded-2xl shadow-xl border p-8">
+                    {/* --- Header Section --- */}
+                    <div className="flex flex-col sm:flex-row items-center sm:items-end gap-6">
+                        <img src={profile.avatar_url || `https://api.dicebear.com/8.x/initials/svg?seed=${profile.full_name}`} alt={profile.full_name} className="w-40 h-40 rounded-full border-8 border-white shadow-lg flex-shrink-0" />
+                        <div className="flex-grow text-center sm:text-left">
+                            <h1 className="text-4xl font-extrabold tracking-tight text-slate-900">{profile.full_name}</h1>
+                            <p className="text-xl font-medium text-blue-600 mt-1">{profile.professional_title}</p>
+                            <p className="text-slate-500 mt-2 flex items-center justify-center sm:justify-start gap-2"><MapPin size={16} />{profile.location || 'Location not provided'}</p>
                         </div>
-                    </motion.div>
-
-                    {/* --- Main Content Grid --- */}
-                    <div className="grid lg:grid-cols-3 gap-8 mt-8">
-                        <motion.div 
-                            initial={{ opacity: 0, x: -20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ delay: 0.2 }}
-                            className="lg:col-span-2 bg-white p-8 rounded-lg shadow-lg border"
-                        >
-                            <h2 className="text-2xl font-bold mb-4 text-gray-800">About Me</h2>
-                            <p className="text-gray-600 leading-relaxed whitespace-pre-line">{profile.bio || "No bio provided."}</p>
-
-                            {profile.skills && profile.skills.length > 0 && (
-                                <>
-                                    <h2 className="text-2xl font-bold mt-8 mb-4 text-gray-800">Skills</h2>
-                                    <div className="flex flex-wrap gap-2">
-                                        {profile.skills.map((skill: string) => (
-                                            <span key={skill} className="bg-blue-100 text-blue-800 text-sm font-medium px-3 py-1 rounded-full">{skill}</span>
-                                        ))}
-                                    </div>
-                                </>
-                            )}
-                        </motion.div>
-
-                        <motion.div 
-                            initial={{ opacity: 0, x: 20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ delay: 0.4 }}
-                            className="lg:col-span-1 space-y-6"
-                        >
-                           <div className="bg-white p-6 rounded-lg shadow-lg border">
-                                <h3 className="text-lg font-bold mb-4 flex items-center gap-2"><Lightbulb size={18} /> Ideas & Projects</h3>
-                                {profile.ideas && profile.ideas.length > 0 ? (
-                                    <div className="space-y-4">
-                                        {profile.ideas.map((idea: any) => (
-                                            <a key={idea.id} href={`/ideas/${idea.id}`} className="block p-3 rounded-md hover:bg-gray-100 border-b last:border-b-0">
-                                                <p className="font-semibold text-gray-800">{idea.title}</p>
-                                                <p className="text-xs text-gray-500">Posted on {new Date(idea.created_at).toLocaleDateString()}</p>
-                                            </a>
-                                        ))}
-                                    </div>
-                                ) : (
-                                    <p className="text-sm text-gray-500">This professional hasn&apos;t posted any ideas yet.</p>
-                                )}
-                           </div>
-                        </motion.div>
+                        <div className="flex items-center gap-2">
+                             {socialLinks.map(link => (
+                                <a key={link.label} href={link.href} target="_blank" rel="noopener noreferrer" className="p-3 bg-slate-100 rounded-full text-slate-600 hover:bg-blue-500 hover:text-white transition-all">
+                                    <link.icon size={20} />
+                                </a>
+                             ))}
+                        </div>
+                    </div>
+                    
+                    {/* --- Main Content --- */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-12">
+                        <div className="md:col-span-2">
+                             <h2 className="text-2xl font-bold text-slate-800 border-b pb-4 mb-4">About Me</h2>
+                             <p className="text-slate-600 leading-relaxed whitespace-pre-line">{profile.bio || 'No bio provided.'}</p>
+                        </div>
+                        <div className="md:col-span-1 space-y-6">
+                             <div>
+                                <h3 className="text-xl font-bold text-slate-800 mb-3">Skills</h3>
+                                <div className="flex flex-wrap gap-2">{profile.skills?.map((s: string) => <span key={s} className="bg-slate-100 text-slate-700 text-sm font-medium px-3 py-1 rounded-full">{s}</span>)}</div>
+                             </div>
+                             <div>
+                                <h3 className="text-xl font-bold text-slate-800 mb-3">Languages</h3>
+                                <div className="flex flex-wrap gap-2">{profile.languages?.map((l: string) => <span key={l} className="bg-slate-100 text-slate-700 text-sm font-medium px-3 py-1 rounded-full">{l}</span>)}</div>
+                             </div>
+                             <div>
+                                <h3 className="text-xl font-bold text-slate-800 mb-3">Certifications</h3>
+                                <div className="flex flex-wrap gap-2">{profile.certifications?.map((c: string) => <span key={c} className="bg-slate-100 text-slate-700 text-sm font-medium px-3 py-1 rounded-full">{c}</span>)}</div>
+                             </div>
+                        </div>
                     </div>
                 </div>
             </div>
