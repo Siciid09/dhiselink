@@ -1,6 +1,42 @@
-// Keep your existing imports and the DashboardSkeleton component
+import { createServerComponentClient } from '@supabase/auth-helpers-nextjs';
+import { cookies } from 'next/headers';
+import { redirect } from 'next/navigation';
+import Link from 'next/link'; // <-- FIX: Import Link
+import { Suspense } from 'react';
+import { 
+    PlusCircle, 
+    Briefcase, 
+    Users, 
+    Eye, 
+    Edit, 
+    Building, 
+    Search, 
+    ArrowRight, 
+    Bell, 
+    Lightbulb 
+} from 'lucide-react'; // <-- FIX: Import all necessary icons
 
-// --- REPLACE THIS ENTIRE FUNCTION ---
+// --- SKELETON LOADER ---
+function DashboardSkeleton() {
+    return (
+        <div className="bg-slate-50 min-h-screen p-4 sm:p-8 animate-pulse">
+            <div className="max-w-7xl mx-auto">
+                <div className="h-10 w-72 bg-slate-200 rounded-md mb-10"></div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+                    <div className="h-36 bg-slate-200 rounded-2xl"></div>
+                    <div className="h-36 bg-slate-200 rounded-2xl"></div>
+                    <div className="h-36 bg-slate-200 rounded-2xl"></div>
+                </div>
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <div className="lg:col-span-2 h-96 bg-slate-200 rounded-2xl"></div>
+                    <div className="lg:col-span-1 h-64 bg-slate-200 rounded-2xl"></div>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+// --- MAIN DASHBOARD CONTENT ---
 async function DashboardContent() {
     const supabase = createServerComponentClient({ cookies });
     const { data: { user } } = await supabase.auth.getUser();
@@ -13,63 +49,25 @@ async function DashboardContent() {
     let stats: any = {};
     let activeJobs: any[] = [];
     let recentIdeas: any[] = [];
-
-    // --- THIS LOGIC IS NOW CORRECTED ---
+    
     if (isIndividual) {
-        const { data: ideas, count: ideaCount } = await supabase
-            .from('ideas')
-            .select('*', { count: 'exact' })
-            .eq('author_id', user.id);
-        
+        const { data: ideas, count: ideaCount } = await supabase.from('ideas').select('*', { count: 'exact' }).eq('author_id', user.id);
         recentIdeas = ideas?.slice(0, 5) || [];
-        stats = { 
-            views: 127, // Placeholder - requires a views table
-            apps: 5,   // Placeholder - requires an applications table
-            ideas: ideaCount ?? 0 
-        };
-    } else { // For Organizations
-        const { data: jobs, count: jobCount } = await supabase
-            .from('jobs')
-            .select('id, title, status, created_at', { count: 'exact' })
-            .eq('organization_id', user.id);
-
+        stats = { views: 127, apps: 5, ideas: ideaCount ?? 0 };
+    } else {
+        const { data: jobs, count: jobCount } = await supabase.from('jobs').select('id, title, status, created_at', { count: 'exact' }).eq('organization_id', user.id);
         activeJobs = jobs?.slice(0, 5) || [];
-        stats = { 
-            posts: jobCount ?? 0, 
-            applicants: 37, // Placeholder - requires an applications table
-            views: 258      // Placeholder - requires a views table
-        };
+        stats = { posts: jobCount ?? 0, applicants: 37, views: 258 };
     }
     
-    const profileStrength = profile.onboarding_complete ? 100 : 80;
-
-    // --- STAT CARDS ARE NOW DYNAMIC ---
     const statCards = isIndividual 
-        ? [
-            { title: "Profile Views", value: stats.views, icon: Eye },
-            { title: "Applications Sent", value: stats.apps, icon: Users },
-            { title: "Ideas Submitted", value: stats.ideas, icon: Lightbulb },
-          ]
-        : [
-            { title: "Active Job Postings", value: stats.posts, icon: Briefcase },
-            { title: "Total Applicants", value: stats.applicants, icon: Users },
-            { title: "Profile Views", value: stats.views, icon: Eye },
-          ];
+        ? [ { title: "Profile Views", value: stats.views, icon: Eye }, { title: "Applications Sent", value: stats.apps, icon: Users }, { title: "Ideas Submitted", value: stats.ideas, icon: Lightbulb } ]
+        : [ { title: "Active Job Postings", value: stats.posts, icon: Briefcase }, { title: "Total Applicants", value: stats.applicants, icon: Users }, { title: "Profile Views", value: stats.views, icon: Eye } ];
 
-    // --- QUICK ACTIONS ARE NOW DYNAMIC ---
     const quickActions = isIndividual
-        ? [
-            { name: "Edit My Profile", href: "/dashboard/settings", icon: Edit },
-            { name: "Submit a New Idea", href: "/dashboard/submit-idea", icon: PlusCircle },
-            { name: "Find a Job", href: "/opportunities", icon: Search },
-        ]
-        : [
-            { name: "Post a New Job", href: "/dashboard/post-job", icon: PlusCircle },
-            { name: "Search for Talent", href: "/professionals", icon: Search },
-            { name: "Profile & Settings", href: "/dashboard/settings", icon: Building },
-          ];
+        ? [ { name: "Edit My Profile", href: "/dashboard/settings", icon: Edit }, { name: "Submit a New Idea", href: "/dashboard/submit-idea", icon: PlusCircle }, { name: "Find a Job", href: "/opportunities", icon: Search } ]
+        : [ { name: "Post a New Job", href: "/dashboard/post-job", icon: PlusCircle }, { name: "Search for Talent", href: "/professionals", icon: Search }, { name: "Profile & Settings", href: "/dashboard/settings", icon: Building } ];
     
-    // --- THE JSX REMAINS LARGELY THE SAME, BUT NOW USES THE CORRECT DATA ---
     return (
        <div className="bg-slate-50 min-h-screen p-4 sm:p-6 lg:p-8">
             <div className="max-w-7xl mx-auto">
@@ -81,9 +79,8 @@ async function DashboardContent() {
                     <div className="flex items-center gap-4 mt-4 sm:mt-0">
                          <button className="p-3 rounded-full bg-white border text-slate-600 hover:bg-slate-100"><Bell size={20} /></button>
                          <Link href={isIndividual ? "/dashboard/submit-idea" : "/dashboard/post-job"} className="bg-blue-600 text-white font-semibold py-3 px-5 rounded-lg flex items-center gap-2 shadow-lg shadow-blue-500/30 hover:bg-blue-700">
-                            <PlusCircle size={20} />
-                            {isIndividual ? "Submit Idea" : "Post Job"}
-                        </Link>
+                            <PlusCircle size={20} />{isIndividual ? "Submit Idea" : "Post Job"}
+                         </Link>
                     </div>
                 </div>
                 
@@ -121,5 +118,11 @@ async function DashboardContent() {
     );
 }
 
-// Keep your main DashboardPage export with Suspense the same
-export default function DashboardPage() { /* ... */ }
+// --- MAIN PAGE EXPORT ---
+export default function DashboardPage() {
+    return (
+        <Suspense fallback={<DashboardSkeleton />}>
+            <DashboardContent />
+        </Suspense>
+    );
+}
