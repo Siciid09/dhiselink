@@ -1,32 +1,36 @@
 "use client";
 
-import { useState, useEffect, useTransition, Suspense } from 'react';
+import { useState, useEffect, useTransition, Suspense, FC } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useDebouncedCallback } from 'use-debounce';
-import { Search, ListFilter, MapPin, Loader2, ArrowRight } from 'lucide-react';
+import { Search, ListFilter, Loader2, ArrowRight } from 'lucide-react';
 
-// --- 1. Updated TypeScript Interface ---
-// Added 'short_bio' to be displayed on the card.
+// --- 1. Final TypeScript Interface (Based on your schema) ---
 interface ProfessionalProfile {
   id: string;
   full_name: string;
   professional_title: string;
-  short_bio?: string | null;
+  bio?: string | null;
   avatar_url?: string | null;
   location?: string | null;
-  skills?: string[];
+  skills?: string[] | null;
+  // Optional fields for future use on detail pages
+  languages?: string[] | null;
+  certifications?: string[] | null;
+  linkedin_url?: string | null;
+  github_url?: string | null;
+  portfolio_url?: string | null;
 }
 
-// --- 2. The NEW "Super Professional" Card Component ---
-const ProfessionalCard = ({ profile }: { profile: ProfessionalProfile }) => {
-  // Truncate the description to ~5 words for the card
-  const shortDescription = profile.short_bio?.split(' ').slice(0, 5).join(' ') + (profile.short_bio && profile.short_bio.split(' ').length > 5 ? '...' : '');
+// --- 2. The Final "Professional & Modern" Card Component ---
+const ProfessionalCard: FC<{ profile: ProfessionalProfile }> = ({ profile }) => {
+  const shortDescription = profile.bio?.split(' ').slice(0, 8).join(' ') + (profile.bio && profile.bio.split(' ').length > 8 ? '...' : '');
 
   return (
-    <div className="group relative bg-white rounded-2xl border border-slate-200 h-full p-6 flex flex-col transition-all duration-300 ease-in-out hover:border-blue-400 hover:shadow-xl hover:-translate-y-1">
+    <div className="group relative bg-white rounded-2xl border border-slate-200 h-full p-6 flex flex-col transition-all duration-300 ease-in-out hover:border-blue-500 hover:shadow-2xl hover:-translate-y-1.5">
       <div className="flex items-start gap-5">
         <Image
           src={profile.avatar_url || `https://api.dicebear.com/8.x/initials/svg?seed=${encodeURIComponent(profile.full_name)}`}
@@ -41,21 +45,20 @@ const ProfessionalCard = ({ profile }: { profile: ProfessionalProfile }) => {
         </div>
       </div>
       
-      <p className="text-sm text-slate-500 mt-4 h-10"> {/* Fixed height for description area */}
+      <p className="text-sm text-slate-600 mt-4 h-10 flex-shrink-0">
           {shortDescription}
       </p>
       
-      {/* This container pushes everything below it to the bottom */}
-      <div className="mt-auto pt-4">
-        <div className="flex flex-wrap gap-2 mb-5">
+      <div className="mt-auto pt-5">
+        <div className="flex flex-wrap gap-2 mb-6 h-6 overflow-hidden">
             {profile.skills?.slice(0, 3).map((skill) => (
-              <span key={skill} className="text-xs font-medium px-3 py-1 rounded-full bg-blue-50 text-blue-700">
+              <span key={skill} className="text-xs font-medium px-3 py-1 rounded-full bg-blue-50 text-blue-800 border border-blue-200/50">
                 {skill}
               </span>
             ))}
         </div>
         
-        <Link href={`/professionals/${profile.id}`} className="flex items-center justify-center w-full text-sm font-semibold text-slate-700 bg-slate-100/80 rounded-lg py-2.5 transition-colors duration-200 group-hover:bg-blue-600 group-hover:text-white" prefetch={false}>
+        <Link href={`/professionals/${profile.id}`} className="flex items-center justify-center w-full text-sm font-semibold text-slate-800 bg-slate-100/80 rounded-lg py-2.5 transition-all duration-300 group-hover:bg-blue-600 group-hover:text-white" prefetch={false}>
           View Profile
           <ArrowRight className="w-4 h-4 ml-2 opacity-0 transition-all duration-300 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0" />
         </Link>
@@ -64,8 +67,8 @@ const ProfessionalCard = ({ profile }: { profile: ProfessionalProfile }) => {
   );
 };
 
-// --- 3. NEW Perfectly Matched Skeleton Card ---
-const SkeletonCard = () => (
+// --- 3. The Perfectly Matched Skeleton Loader ---
+const SkeletonCard: FC = () => (
     <div className="bg-white rounded-2xl border border-slate-200 h-full p-6 flex flex-col animate-pulse">
       <div className="flex items-start gap-5">
         <div className="w-16 h-16 rounded-full bg-slate-200 flex-shrink-0"></div>
@@ -78,8 +81,8 @@ const SkeletonCard = () => (
         <div className="h-3 w-full rounded bg-slate-200"></div>
         <div className="h-3 w-3/4 rounded bg-slate-200"></div>
       </div>
-      <div className="mt-auto pt-4">
-        <div className="flex flex-wrap gap-2 mb-5">
+      <div className="mt-auto pt-5">
+        <div className="flex flex-wrap gap-2 mb-6 h-6">
             <div className="h-6 w-16 rounded-full bg-slate-100"></div>
             <div className="h-6 w-20 rounded-full bg-slate-100"></div>
             <div className="h-6 w-14 rounded-full bg-slate-100"></div>
@@ -89,8 +92,7 @@ const SkeletonCard = () => (
     </div>
 );
 
-
-// --- Main Component (Data Fetching Logic is Unchanged) ---
+// --- Main Page Component ---
 function ProfessionalsClientPage() {
   const [profiles, setProfiles] = useState<ProfessionalProfile[]>([]);
   const [loading, setLoading] = useState(true);
@@ -133,7 +135,6 @@ function ProfessionalsClientPage() {
         </header>
 
         <div className="bg-white/80 backdrop-blur-lg p-4 rounded-xl border border-slate-200 shadow-lg mb-12 grid grid-cols-1 md:grid-cols-2 gap-4 items-center sticky top-24 z-40">
-           {/* Search inputs remain the same... */}
           <div className="relative">
             <label htmlFor="name-search" className="sr-only">Search by name or title</label>
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
@@ -156,8 +157,8 @@ function ProfessionalsClientPage() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              transition={{ duration: 0.2 }}
-              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6" // Note: Changed to 3 columns to better suit the new card shape
+              transition={{ duration: 0.3 }}
+              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
             >
               {loading ? (
                 Array.from({ length: 9 }).map((_, index) => <SkeletonCard key={index} />)
@@ -181,10 +182,10 @@ function ProfessionalsClientPage() {
   );
 }
 
-// --- Main Page Export ---
+// --- Default Export with Suspense Wrapper ---
 export default function ProfessionalsPage() {
     return (
-        <Suspense fallback={<div></div>}> {/* Simple fallback */}
+        <Suspense>
             <ProfessionalsClientPage />
         </Suspense>
     );
