@@ -3,52 +3,37 @@ import { cookies } from 'next/headers';
 import Link from 'next/link';
 import { BrainCircuit, PlusCircle } from 'lucide-react';
 
-// --- Type Definitions for TypeScript Safety ---
+export const dynamic = 'force-dynamic'; // THIS IS THE FIX
+
 type Idea = {
   id: string;
   title: string;
   summary: string;
-  // This is the shape we want: a single profile object, not an array
   profiles: { 
     full_name: string; 
-  };
+  } | null; // Profile can be null if author is deleted
 };
 
-// --- Secure Data Fetching and Transformation ---
 async function getIdeas(): Promise<Idea[]> {
     const supabase = createServerComponentClient({ cookies });
-
     const { data, error } = await supabase
         .from('ideas')
-        .select(`
-            id,
-            title,
-            summary,
-            profiles ( full_name )
-        `)
+        .select(`id, title, summary, profiles (full_name)`)
         .order('created_at', { ascending: false });
 
     if (error) {
         console.error("Error fetching ideas:", error);
         return [];
     }
-
-    if (!data) {
-        return [];
-    }
+    if (!data) return [];
     
-    // --- THIS IS THE FIX ---
-    // We transform the data to match the 'Idea' type perfectly.
     const transformedData = data.map(idea => ({
       ...idea,
-      // This safely takes the first profile from the array that Supabase returns.
       profiles: Array.isArray(idea.profiles) ? idea.profiles[0] : idea.profiles,
     }));
-
     return transformedData as Idea[];
 }
 
-// --- Main Page Component ---
 export default async function IdeasPage() {
   const ideas = await getIdeas();
 
@@ -63,9 +48,9 @@ export default async function IdeasPage() {
             Innovation Hub
           </h1>
           <p className="mt-4 text-lg text-slate-600 max-w-2xl mx-auto">
-            Discover and collaborate on projects and ventures from talented individuals across the nation.
+            Discover and collaborate on projects and ventures from talented individuals.
           </p>
-          <Link href="/dashboard/submit-idea" className="mt-8 inline-flex items-center gap-2 bg-blue-600 text-white font-semibold py-3 px-6 rounded-lg shadow-lg shadow-blue-500/30 hover:bg-blue-700 transition-all">
+          <Link href="/dashboard/submit-idea" className="mt-8 inline-flex items-center gap-2 bg-blue-600 text-white font-semibold py-3 px-6 rounded-lg shadow-lg hover:bg-blue-700">
             <PlusCircle size={20} />
             Submit Your Idea
           </Link>
@@ -75,14 +60,10 @@ export default async function IdeasPage() {
             {ideas.length > 0 ? (
                 ideas.map((idea) => (
                     <Link href={`/ideas/${idea.id}`} key={idea.id} className="block group">
-                        <div className="bg-white p-6 rounded-2xl border border-slate-200 transition-all duration-300 hover:shadow-xl hover:border-blue-500 hover:-translate-y-1">
-                            <h2 className="text-2xl font-bold text-slate-900 group-hover:text-blue-600 transition-colors">
-                                {idea.title}
-                            </h2>
+                        <div className="bg-white p-6 rounded-2xl border border-slate-200 transition-all hover:shadow-xl hover:border-blue-500 hover:-translate-y-1">
+                            <h2 className="text-2xl font-bold text-slate-900 group-hover:text-blue-600">{idea.title}</h2>
                             <p className="text-slate-600 mt-2 line-clamp-2">{idea.summary}</p>
-                            <p className="text-sm text-slate-500 mt-4">
-                                Posted by <span className="font-semibold">{idea.profiles?.full_name || 'A Member'}</span>
-                            </p>
+                            <p className="text-sm text-slate-500 mt-4">Posted by <span className="font-semibold">{idea.profiles?.full_name || 'A Member'}</span></p>
                         </div>
                     </Link>
                 ))
