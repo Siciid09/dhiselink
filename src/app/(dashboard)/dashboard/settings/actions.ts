@@ -12,6 +12,7 @@ interface ActionState {
 }
 
 const stringToArray = (str: string | null) => str ? str.split(',').map(item => item.trim()).filter(Boolean) : [];
+<<<<<<< HEAD
 const parseJsonSafe = (jsonString: string | null) => {
     if (!jsonString) return [];
     try {
@@ -20,13 +21,19 @@ const parseJsonSafe = (jsonString: string | null) => {
         throw new Error("Invalid JSON format for dynamic entries.");
     }
 };
+=======
+>>>>>>> 55fe139b3e819ae9c07bcabd58ac72a47b0d801d
 
 export async function updateProfile(prevState: ActionState, formData: FormData): Promise<ActionState> {
     const supabase = createServerActionClient({ cookies });
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return { error: "You must be logged in.", success: false };
 
+<<<<<<< HEAD
     const role = formData.get("role") as string;
+=======
+  if (!user) return { error: "You must be logged in.", success: false };
+>>>>>>> 55fe139b3e819ae9c07bcabd58ac72a47b0d801d
 
     try {
         // --- 1. UPDATE THE MAIN 'profiles' TABLE DATA ---
@@ -57,6 +64,7 @@ export async function updateProfile(prevState: ActionState, formData: FormData):
             .eq('id', user.id);
         if (profileUpdateError) throw profileUpdateError;
 
+<<<<<<< HEAD
 
         // --- 2. UPDATE RELATED DYNAMIC DATA (Jobs, Programs, Initiatives) ---
         // We use 'upsert' to insert new items and update existing ones.
@@ -96,3 +104,48 @@ export async function updateProfile(prevState: ActionState, formData: FormData):
         return { error: `Update failed: ${error.message}`, success: false };
     }
 }
+=======
+  if (role === 'individual') {
+    updateData = {
+      full_name: formData.get("full_name"),
+      professional_title: formData.get("professional_title"),
+      bio: formData.get("bio"),
+      location: formData.get("location"),
+      email: formData.get("email"),
+      phone: formData.get("phone"),
+      skills: stringToArray(formData.get("skills") as string),
+      languages: stringToArray(formData.get("languages") as string),
+      website_url: formData.get("website_url"),
+      linkedin_url: formData.get("linkedin_url"),
+      github_url: formData.get("github_url"),
+      avatar_url: formData.get("avatar_url"), // Fixed: Save avatar URL
+      banner_url: formData.get("banner_url"), // Fixed: Save banner URL
+      work_experience: JSON.parse(formData.get("work_experience") as string || '[]'),
+      education: JSON.parse(formData.get("education") as string || '[]'),
+    };
+  } else { // For all organization types
+    updateData = {
+      organization_name: formData.get("organization_name"),
+      industry: formData.get("industry"),
+      bio: formData.get("bio"),
+      location: formData.get("location"),
+      website_url: formData.get("website_url"),
+      email: formData.get("email"),
+      phone: formData.get("phone"),
+      logo_url: formData.get("logo_url"), // Fixed: Save logo URL
+      banner_url: formData.get("banner_url"),// Fixed: Save banner URL
+    };
+  }
+
+  const { error } = await supabase.from("profiles").update(updateData).eq("id", user.id);
+
+  if (error) {
+    console.error("Profile Update Error:", error);
+    return { error: `Database Error: ${error.message}`, success: false };
+  }
+  
+  revalidatePath("/dashboard/settings");
+  revalidatePath(`/professionals/${user.id}`); // Revalidate public profile
+  return { error: null, success: true };
+}
+>>>>>>> 55fe139b3e819ae9c07bcabd58ac72a47b0d801d
