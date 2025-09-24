@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, FC } from 'react';
+import React, { useState, useEffect, FC, useRef } from 'react';
 import { motion, useAnimation, AnimatePresence, animate } from 'framer-motion';
 import { useInView } from 'react-intersection-observer';
 import {
@@ -125,111 +125,73 @@ const AnimatedCounter: FC<{ value: number, className?: string }> = ({ value, cla
 // --- 3. NEW & REDESIGNED PAGE SECTION COMPONENTS ---
 
 /**
- * Advanced Futuristic Robot Component
+ * Advanced Futuristic Robot Component (UPDATED)
  * Features: 
- * - Eyes that track the mouse cursor across the screen.
- * - Shy smile and eyebrow raise on hover.
- * - Realistic random blinking.
- * - Subtle floating animation.
- * - Enhanced 3D appearance with gradients.
- * - Redesigned, detailed engineering hats.
- * - Holding a big metallic cylinder.
+ * - More realistic, modern, and happy design aesthetic.
+ * - Eyes track cursor with faster, more realistic motion.
+ * - On hover: Enters a "defensive" mode.
+ * - Expression changes to cautious/afraid.
+ * - Arms move to "block" the cursor.
+ * - Eyes continue to track the cursor's every move.
+ * - Redesigned hat using a single beautiful shape with dynamic colors.
+ * - Realistic random blinking and subtle floating animation.
  */
 const FuturisticRobot: FC<{ hatType: string }> = ({ hatType }) => {
     const [isHovered, setIsHovered] = useState(false);
     const [isBlinking, setIsBlinking] = useState(false);
-    const [eyeOffset, setEyeOffset] = useState({ x: 0, y: 0 });
+    const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+    const svgRef = useRef<SVGSVGElement>(null);
 
-    // Eye blinking
-    useEffect(() => {
-        const blinkTimer = setInterval(() => {
-            setIsBlinking(true);
-            setTimeout(() => setIsBlinking(false), 150); // Blink duration
-        }, Math.random() * 4000 + 3000); // Blink every 3-7 seconds
-        return () => clearInterval(blinkTimer);
-    }, []);
-
-    // Eye tracking mouse position
+    // --- MOUSE TRACKING FOR EYES AND ARMS ---
     useEffect(() => {
         const handleMouseMove = (e: MouseEvent) => {
-            const { clientX, clientY } = e;
-            // Get robot's position on screen
-            const robotElement = document.getElementById('futuristic-robot-svg');
-            if (!robotElement) return;
-
-            const rect = robotElement.getBoundingClientRect();
-            const robotCenterX = rect.left + rect.width / 2;
-            const robotCenterY = rect.top + rect.height / 2;
-            
-            // Calculate vector from robot center to mouse
-            const deltaX = clientX - robotCenterX;
-            const deltaY = clientY - robotCenterY;
-
-            // Normalize and scale offset
-            const angle = Math.atan2(deltaY, deltaX);
-            const maxOffset = 6; // Max pixels the eye can move
-            
-            // Limit the distance the eyes look
-            const distance = Math.min(maxOffset, Math.sqrt(deltaX * deltaX + deltaY * deltaY) / 10);
-
-            setEyeOffset({ 
-                x: distance * Math.cos(angle), 
-                y: distance * Math.sin(angle) 
-            });
+            if (!svgRef.current) return;
+            const rect = svgRef.current.getBoundingClientRect();
+            // Convert window mouse coords to SVG viewbox coords
+            const svgX = (e.clientX - rect.left) * (400 / rect.width);
+            const svgY = (e.clientY - rect.top) * (400 / rect.height);
+            setMousePos({ x: svgX, y: svgY });
         };
-        
         window.addEventListener('mousemove', handleMouseMove);
         return () => window.removeEventListener('mousemove', handleMouseMove);
     }, []);
-    
+
+    // --- RANDOM BLINKING ---
+    useEffect(() => {
+        const blinkTimer = setInterval(() => {
+            setIsBlinking(true);
+            setTimeout(() => setIsBlinking(false), 150);
+        }, Math.random() * 4000 + 3000);
+        return () => clearInterval(blinkTimer);
+    }, []);
+
+    // --- CALCULATIONS FOR DYNAMIC ANIMATIONS ---
+    // Eye movement calculation
+    const robotCenter = { x: 200, y: 125 };
+    const deltaX = mousePos.x - robotCenter.x;
+    const deltaY = mousePos.y - robotCenter.y;
+    const angle = Math.atan2(deltaY, deltaX);
+    const distance = Math.min(10, Math.sqrt(deltaX**2 + deltaY**2) / 20); // Max offset of 10px
+    const eyeOffset = { x: distance * Math.cos(angle), y: distance * Math.sin(angle) };
+
+    // Arm rotation calculation
+    const leftShoulder = { x: 115, y: 190 };
+    const rightShoulder = { x: 285, y: 190 };
+    const leftArmAngle = Math.atan2(mousePos.y - leftShoulder.y, mousePos.x - leftShoulder.x) * (180 / Math.PI) + 90;
+    const rightArmAngle = Math.atan2(mousePos.y - rightShoulder.y, mousePos.x - rightShoulder.x) * (180 / Math.PI) + 90;
+
+    const armRotation = {
+        left: Math.max(-45, Math.min(135, leftArmAngle)), // Clamp rotation
+        right: Math.max(-135, Math.min(45, rightArmAngle)), // Clamp rotation
+    };
+
     const Hat: FC<{ type: string }> = ({ type }) => {
-        let hatContent;
-        switch (type) {
-            case 'civil':
-                hatContent = (
-                    <g>
-                        {/* Hard Hat */}
-                        <path d="M 140 90 Q 150 50 200 40 Q 250 50 260 90 L 265 100 L 135 100 L 140 90 Z" 
-                              fill="#FBBF24" stroke="#F59E0B" strokeWidth="2"/>
-                        {/* Brim */}
-                        <path d="M 135 100 A 70 20 0 0 1 265 100 Z" fill="#FBBF24" stroke="#F59E0B" strokeWidth="2"/>
-                        {/* Headlamp mount (optional detail) */}
-                        <rect x="190" y="55" width="20" height="8" rx="2" fill="#F59E0B"/>
-                    </g>
-                );
-                break;
-            case 'tech':
-                 hatContent = (
-                    <g>
-                        {/* AR Goggles / Visor */}
-                        <rect x="145" y="70" width="110" height="30" rx="5" fill="#4A5568" stroke="#2D3748" strokeWidth="2"/>
-                        {/* Lens reflection */}
-                        <path d="M 150 75 Q 160 70 180 75 L 180 80 Q 160 85 150 80 Z" fill="rgba(255,255,255,0.3)"/>
-                        <path d="M 220 75 Q 230 70 250 75 L 250 80 Q 230 85 220 80 Z" fill="rgba(255,255,255,0.3)"/>
-                        {/* Headband */}
-                        <path d="M 155 70 C 150 60, 250 60, 245 70" fill="none" stroke="#2D3748" strokeWidth="4"/>
-                        <circle cx="150" cy="85" r="3" fill="#3B82F6"/>
-                        <circle cx="250" cy="85" r="3" fill="#3B82F6"/>
-                    </g>
-                );
-                break;
-            case 'safety':
-                hatContent = (
-                    <g>
-                        {/* Safety Helmet */}
-                        <path d="M 140 90 C 145 50, 255 50, 260 90 L 265 100 L 135 100 L 140 90 Z" 
-                              fill="#22C55E" stroke="#16A34A" strokeWidth="2"/>
-                        {/* Reflective strip */}
-                        <rect x="155" y="92" width="90" height="4" rx="2" fill="#FFFFFF" opacity="0.8"/>
-                        {/* Front Badge */}
-                        <circle cx="200" cy="70" r="12" fill="#FFFFFF" stroke="#16A34A" strokeWidth="1.5"/>
-                        <path d="M 197 70 H 203 M 200 67 V 73" stroke="#16A34A" strokeWidth="2" strokeLinecap="round"/>
-                    </g>
-                );
-                break;
-            default:
-                hatContent = null;
-        }
+        const hatColors: { [key: string]: { fill: string, stroke: string } } = {
+            civil: { fill: "#FBBF24", stroke: "#F59E0B" }, // Yellow
+            tech: { fill: "#3B82F6", stroke: "#2563EB" }, // Blue
+            safety: { fill: "#22C55E", stroke: "#16A34A" }, // Green
+        };
+        const colors = hatColors[type] || hatColors.civil;
 
         return (
             <motion.g
@@ -238,28 +200,24 @@ const FuturisticRobot: FC<{ hatType: string }> = ({ hatType }) => {
                 exit={{ opacity: 0, y: -20, rotate: 5 }}
                 transition={{ duration: 0.4, ease: "easeOut" }}
             >
-                {hatContent}
+                {/* Hard Hat Base Shape */}
+                <path d="M 140 90 Q 150 50 200 40 Q 250 50 260 90 L 265 100 L 135 100 L 140 90 Z" 
+                      fill={colors.fill} stroke={colors.stroke} strokeWidth="2"/>
+                {/* Brim */}
+                <path d="M 135 100 A 70 20 0 0 1 265 100 Z" fill={colors.fill} stroke={colors.stroke} strokeWidth="2"/>
+                {/* Detail */}
+                <rect x="190" y="55" width="20" height="8" rx="2" fill={colors.stroke}/>
             </motion.g>
         );
     };
 
     return (
         <motion.div
-            id="futuristic-robot-container" // Add ID to container for mouse tracking
-            className="relative w-full max-w-lg mx-auto flex justify-center items-center"
+            className="relative w-full max-w-lg mx-auto cursor-pointer"
             onHoverStart={() => setIsHovered(true)}
             onHoverEnd={() => setIsHovered(false)}
         >
-            {/* Blurred Red Background on Hover */}
-            <motion.div
-                className="absolute inset-0 bg-red-500/50 -z-10 rounded-full"
-                style={{ filter: 'blur(80px)' }} // Increased blur for a softer glow
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: isHovered ? 1 : 0, scale: isHovered ? 1 : 0.8 }}
-                transition={{ duration: 0.4 }}
-            />
-
-            <svg id="futuristic-robot-svg" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" className="w-full h-auto">
+            <svg ref={svgRef} viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" className="w-full h-auto">
                 <defs>
                     <radialGradient id="headGradient" cx="0.4" cy="0.4" r="0.6">
                         <stop offset="0%" stopColor="#FFFFFF" />
@@ -269,83 +227,62 @@ const FuturisticRobot: FC<{ hatType: string }> = ({ hatType }) => {
                         <stop offset="0%" stopColor="#D1D5DB" />
                         <stop offset="100%" stopColor="#9CA3AF" />
                     </linearGradient>
-                    <linearGradient id="armGradient" x1="0" y1="0" x2="1" y2="0">
-                        <stop offset="0%" stopColor="#A0AEC0" />
-                        <stop offset="100%" stopColor="#718096" />
-                    </linearGradient>
-                    <linearGradient id="cylinderGradient" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#CBD5E0" />
-                        <stop offset="50%" stopColor="#A0AEC0" />
-                        <stop offset="100%" stopColor="#718096" />
-                    </linearGradient>
-                     <filter id="eyeGlow">
-                        <feGaussianBlur stdDeviation="3.5" result="coloredBlur" />
+                    <filter id="eyeGlow">
+                        <feGaussianBlur stdDeviation="3" result="coloredBlur" />
                         <feMerge>
                             <feMergeNode in="coloredBlur" />
                             <feMergeNode in="SourceGraphic" />
                         </feMerge>
-                    </filter>
-                    <filter id="shadow">
-                        <feDropShadow dx="2" dy="2" stdDeviation="3" floodColor="#000000" floodOpacity="0.3"/>
                     </filter>
                 </defs>
 
                 <motion.g 
                     animate={{ y: [0, -4, 0] }}
                     transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-                    filter="url(#shadow)"
                 >
                     {/* Body */}
                     <path d="M 200,320 C 150,320 120,280 120,230 L 120,190 H 280 L 280,230 C 280,280 250,320 200,320 Z" fill="url(#bodyGradient)" />
                     {/* Neck */}
                     <rect x="180" y="170" width="40" height="20" fill="#9CA3AF" />
                     <rect x="175" y="175" width="50" height="4" fill="#6B7280" rx="2" />
-
-                    {/* Left Arm */}
-                    <rect x="100" y="190" width="30" height="80" rx="10" fill="url(#armGradient)" />
-                    <circle cx="115" cy="190" r="15" fill="#6B7280" /> {/* Shoulder joint */}
-                    <rect x="90" y="260" width="40" height="20" rx="5" fill="#6B7280" /> {/* Hand */}
-
-                    {/* Right Arm */}
-                    <rect x="270" y="190" width="30" height="80" rx="10" fill="url(#armGradient)" />
-                    <circle cx="285" cy="190" r="15" fill="#6B7280" /> {/* Shoulder joint */}
-                    <rect x="270" y="260" width="40" height="20" rx="5" fill="#6B7280" /> {/* Hand */}
-
-                    {/* Big Cylinder (held by hands) */}
-                    <motion.g
-                        initial={{ rotate: 0 }}
-                        animate={{ rotate: isHovered ? 5 : 0 }}
-                        transformOrigin="200 270" // Rotate around its center bottom
+                    
+                    {/* --- Left Arm --- */}
+                    <motion.g 
+                        transformOrigin="115 190"
+                        animate={{ rotate: isHovered ? armRotation.left : 0 }}
                         transition={{ type: "spring", stiffness: 300, damping: 20 }}
                     >
-                        <rect x="160" y="250" width="80" height="120" rx="15" fill="url(#cylinderGradient)" stroke="#4A5568" strokeWidth="2"/>
-                        <circle cx="200" cy="250" r="15" fill="#A0AEC0" stroke="#4A5568" strokeWidth="2"/> {/* Top cap */}
-                        <circle cx="200" cy="370" r="15" fill="#A0AEC0" stroke="#4A5568" strokeWidth="2"/> {/* Bottom cap */}
-                        <rect x="170" y="260" width="60" height="10" rx="3" fill="#6B7280"/>
-                        <rect x="170" y="300" width="60" height="10" rx="3" fill="#6B7280"/>
-                        <rect x="170" y="340" width="60" height="10" rx="3" fill="#6B7280"/>
+                        <rect x="100" y="190" width="30" height="80" rx="10" fill="#A0AEC0" />
+                        <circle cx="115" cy="190" r="15" fill="#6B7280" /> {/* Shoulder joint */}
+                        <rect x="90" y="260" width="40" height="20" rx="5" fill="#6B7280" /> {/* Hand */}
+                    </motion.g>
+
+                    {/* --- Right Arm --- */}
+                    <motion.g 
+                        transformOrigin="285 190"
+                        animate={{ rotate: isHovered ? armRotation.right : 0 }}
+                        transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                    >
+                        <rect x="270" y="190" width="30" height="80" rx="10" fill="#A0AEC0" />
+                        <circle cx="285" cy="190" r="15" fill="#6B7280" /> {/* Shoulder joint */}
+                        <rect x="270" y="260" width="40" height="20" rx="5" fill="#6B7280" /> {/* Hand */}
                     </motion.g>
 
                     {/* Head */}
                     <circle cx="200" cy="120" r="60" fill="url(#headGradient)" stroke="#9CA3AF" strokeWidth="2" />
                     
-                    {/* Eyebrows (Adjusted positions for full head hat) */}
-                    <motion.path 
-                        d="M 175 110 L 190 108" 
-                        stroke="#4B5563" strokeWidth="4" strokeLinecap="round"
-                        animate={{ y: isHovered ? -5 : 0, rotate: isHovered ? -10 : 0 }} // More dramatic brow raise
-                    />
-                    <motion.path 
-                        d="M 210 108 L 225 110" 
-                        stroke="#4B5563" strokeWidth="4" strokeLinecap="round"
-                        animate={{ y: isHovered ? -5 : 0, rotate: isHovered ? 10 : 0 }} // More dramatic brow raise
-                    />
+                    {/* Eyebrows */}
+                    <motion.path d="M 175 110 L 190 108" stroke="#4B5563" strokeWidth="4" strokeLinecap="round" />
+                    <motion.path d="M 210 108 L 225 110" stroke="#4B5563" strokeWidth="4" strokeLinecap="round" />
 
                     {/* Eyes */}
-                    <motion.g animate={{ x: eyeOffset.x, y: eyeOffset.y }} transition={{ type: 'spring', stiffness: 150, damping: 20 }}>
+                    <motion.g 
+                        animate={{ x: eyeOffset.x, y: eyeOffset.y }} 
+                        transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+                    >
                         <g filter="url(#eyeGlow)">
-                             <circle cx="180" cy="125" r="8" fill="#EF4444" />
-                             <circle cx="220" cy="125" r="8" fill="#EF4444" />
+                            <circle cx="180" cy="125" r="8" fill="#3B82F6" />
+                            <circle cx="220" cy="125" r="8" fill="#3B82F6" />
                         </g>
                         <motion.rect x="172" y="113" width="16" rx="2" fill="#D1D5DB"
                             initial={{ height: 0 }}
@@ -362,8 +299,8 @@ const FuturisticRobot: FC<{ hatType: string }> = ({ hatType }) => {
                     {/* Mouth */}
                     <motion.path 
                         stroke="#6B7280" strokeWidth="3" fill="none" strokeLinecap="round"
-                        initial={{ d: "M 195 150 L 205 150" }}
-                        animate={{ d: isHovered ? "M 192 150 Q 200 160 208 150" : "M 195 150 L 205 150" }}
+                        initial={{ d: "M 192 150 Q 200 155 208 150" }} // Default happy smile
+                        animate={{ d: isHovered ? "M 195 155 L 205 155" : "M 192 150 Q 200 155 208 150" }}
                         transition={{ type: "spring", stiffness: 400, damping: 15 }}
                     />
                     
@@ -378,17 +315,13 @@ const FuturisticRobot: FC<{ hatType: string }> = ({ hatType }) => {
 };
 
 
-/**
- * Hero Section
- * FIXED: CTA buttons no longer re-animate when text changes.
- */
 const HeroSection: FC = () => {
     const [index, setIndex] = useState(0);
     
     useEffect(() => {
         const timer = setInterval(() => {
             setIndex((prevIndex) => (prevIndex + 1) % heroContent.length);
-        }, 6000); // Cycle every 6 seconds
+        }, 6000);
         return () => clearInterval(timer);
     }, []);
 
@@ -396,10 +329,7 @@ const HeroSection: FC = () => {
 
     return (
         <section className="relative min-h-screen flex items-center bg-gradient-to-br from-white to-gray-100 overflow-hidden">
-            {/* Background pattern */}
             <div className="absolute inset-0 opacity-20" style={{ backgroundImage: "url('/grid.svg')", backgroundSize: "40px 40px" }}></div>
-            
-            {/* Blurred Gradients */}
             <div className="absolute top-0 left-0 w-1/3 h-full bg-gradient-to-r from-blue-100/50 to-transparent blur-3xl -z-10"></div>
             <div className="absolute top-0 right-0 w-1/3 h-full bg-gradient-to-l from-violet-100/50 to-transparent blur-3xl -z-10"></div>
             
@@ -424,7 +354,6 @@ const HeroSection: FC = () => {
                         </motion.div>
                     </AnimatePresence>
 
-                    {/* --- CTA Buttons (Now outside the animation key) --- */}
                     <motion.div 
                         className="flex flex-col sm:flex-row justify-center lg:justify-start items-center gap-4"
                         initial={{ opacity: 0, y: 20 }}
@@ -444,13 +373,9 @@ const HeroSection: FC = () => {
                     </motion.div>
                 </div>
 
-                <motion.div 
-                    className="hidden lg:flex justify-center items-center" // Centered for better robot display
-                    whileHover={{ scale: 1.05 }} // Scale on hover for the whole robot
-                    transition={{ type: "spring", stiffness: 200, damping: 20 }}
-                >
+                <div className="hidden lg:flex justify-center items-center">
                     <FuturisticRobot hatType={currentContent.hat} />
-                </motion.div>
+                </div>
             </div>
 
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.5 }} className="absolute bottom-10 left-1/2 -translate-x-1/2">
@@ -462,9 +387,6 @@ const HeroSection: FC = () => {
     );
 };
 
-/**
- * Trusted By Section (Infinite Logo Scroller)
- */
 const TrustedBySection: FC = () => {
     const duplicatedPartners = [...partners, ...partners];
     return (
@@ -491,9 +413,6 @@ const TrustedBySection: FC = () => {
     );
 };
 
-/**
- * Impact Stats Section (Modernized Icons)
- */
 const ImpactStatsSection: FC = () => (
     <div className="relative py-20 md:py-28 bg-gradient-to-br from-indigo-900 to-blue-900 text-white">
         <div className="absolute inset-0 opacity-10 bg-[url('/dots.svg')]"></div>
@@ -519,9 +438,6 @@ const ImpactStatsSection: FC = () => (
     </div>
 );
 
-/**
- * Core Development Sectors Section (Expanded to 9)
- */
 const CoreSectorsSection: FC = () => (
     <AnimatedSection id="sectors" className="bg-white">
         <motion.h2 variants={sectionVariants} className="text-4xl md:text-5xl font-bold text-gray-800 text-center mb-4">
@@ -550,9 +466,6 @@ const CoreSectorsSection: FC = () => (
     </AnimatedSection>
 );
 
-/**
- * Latest Jobs Section
- */
 const LatestJobsSection: FC = () => {
     const typeStyles: { [key: string]: string } = {
         'GOV': 'bg-blue-100 text-blue-800', 'NGO': 'bg-green-100 text-green-800', 'JOB': 'bg-orange-100 text-orange-800',
@@ -589,9 +502,6 @@ const LatestJobsSection: FC = () => {
     );
 };
 
-/**
- * Testimonials Section (Upgraded with Dots)
- */
 const TestimonialsSection: FC = () => {
     const [index, setIndex] = useState(0);
 
@@ -621,7 +531,6 @@ const TestimonialsSection: FC = () => {
                     </AnimatePresence>
                 </div>
 
-                {/* Navigation Dots */}
                 <div className="flex justify-center gap-3 mt-8">
                     {testimonialsData.map((_, i) => (
                         <button
@@ -636,10 +545,6 @@ const TestimonialsSection: FC = () => {
     );
 };
 
-
-/**
- * FAQ Section
- */
 const FAQSection: FC = () => {
     const [openIndex, setOpenIndex] = useState<number | null>(0);
 
@@ -675,10 +580,6 @@ const FAQSection: FC = () => {
     );
 };
 
-
-/**
- * Call to Action Section
- */
 const CTASection: FC = () => (
     <div className="py-20 md:py-28">
         <div className="container mx-auto px-6">
