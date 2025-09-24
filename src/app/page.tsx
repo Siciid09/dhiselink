@@ -127,14 +127,11 @@ const AnimatedCounter: FC<{ value: number, className?: string }> = ({ value, cla
 /**
  * Advanced Futuristic Robot Component (UPDATED)
  * Features: 
- * - More realistic, modern, and happy design aesthetic.
- * - Eyes track cursor with faster, more realistic motion.
- * - On hover: Enters a "defensive" mode.
- * - Expression changes to cautious/afraid.
- * - Arms move to "block" the cursor.
- * - Eyes continue to track the cursor's every move.
- * - Redesigned hat using a single beautiful shape with dynamic colors.
- * - Realistic random blinking and subtle floating animation.
+ * - Red hover glow for focused interaction.
+ * - Persistent realistic drop shadow for depth.
+ * - Defensive mode on hover: arms block, expression changes.
+ * - Fast, realistic eye-tracking.
+ * - Single hat design with dynamic colors.
  */
 const FuturisticRobot: FC<{ hatType: string }> = ({ hatType }) => {
     const [isHovered, setIsHovered] = useState(false);
@@ -142,12 +139,11 @@ const FuturisticRobot: FC<{ hatType: string }> = ({ hatType }) => {
     const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
     const svgRef = useRef<SVGSVGElement>(null);
 
-    // --- MOUSE TRACKING FOR EYES AND ARMS ---
+    // Mouse tracking for eyes and arms
     useEffect(() => {
         const handleMouseMove = (e: MouseEvent) => {
             if (!svgRef.current) return;
             const rect = svgRef.current.getBoundingClientRect();
-            // Convert window mouse coords to SVG viewbox coords
             const svgX = (e.clientX - rect.left) * (400 / rect.width);
             const svgY = (e.clientY - rect.top) * (400 / rect.height);
             setMousePos({ x: svgX, y: svgY });
@@ -156,7 +152,7 @@ const FuturisticRobot: FC<{ hatType: string }> = ({ hatType }) => {
         return () => window.removeEventListener('mousemove', handleMouseMove);
     }, []);
 
-    // --- RANDOM BLINKING ---
+    // Random blinking
     useEffect(() => {
         const blinkTimer = setInterval(() => {
             setIsBlinking(true);
@@ -165,24 +161,22 @@ const FuturisticRobot: FC<{ hatType: string }> = ({ hatType }) => {
         return () => clearInterval(blinkTimer);
     }, []);
 
-    // --- CALCULATIONS FOR DYNAMIC ANIMATIONS ---
-    // Eye movement calculation
+    // Calculations for dynamic animations
     const robotCenter = { x: 200, y: 125 };
     const deltaX = mousePos.x - robotCenter.x;
     const deltaY = mousePos.y - robotCenter.y;
     const angle = Math.atan2(deltaY, deltaX);
-    const distance = Math.min(10, Math.sqrt(deltaX**2 + deltaY**2) / 20); // Max offset of 10px
+    const distance = Math.min(10, Math.sqrt(deltaX**2 + deltaY**2) / 20);
     const eyeOffset = { x: distance * Math.cos(angle), y: distance * Math.sin(angle) };
 
-    // Arm rotation calculation
     const leftShoulder = { x: 115, y: 190 };
     const rightShoulder = { x: 285, y: 190 };
     const leftArmAngle = Math.atan2(mousePos.y - leftShoulder.y, mousePos.x - leftShoulder.x) * (180 / Math.PI) + 90;
     const rightArmAngle = Math.atan2(mousePos.y - rightShoulder.y, mousePos.x - rightShoulder.x) * (180 / Math.PI) + 90;
 
     const armRotation = {
-        left: Math.max(-45, Math.min(135, leftArmAngle)), // Clamp rotation
-        right: Math.max(-135, Math.min(45, rightArmAngle)), // Clamp rotation
+        left: Math.max(-45, Math.min(135, leftArmAngle)),
+        right: Math.max(-135, Math.min(45, rightArmAngle)),
     };
 
     const Hat: FC<{ type: string }> = ({ type }) => {
@@ -200,12 +194,9 @@ const FuturisticRobot: FC<{ hatType: string }> = ({ hatType }) => {
                 exit={{ opacity: 0, y: -20, rotate: 5 }}
                 transition={{ duration: 0.4, ease: "easeOut" }}
             >
-                {/* Hard Hat Base Shape */}
                 <path d="M 140 90 Q 150 50 200 40 Q 250 50 260 90 L 265 100 L 135 100 L 140 90 Z" 
                       fill={colors.fill} stroke={colors.stroke} strokeWidth="2"/>
-                {/* Brim */}
                 <path d="M 135 100 A 70 20 0 0 1 265 100 Z" fill={colors.fill} stroke={colors.stroke} strokeWidth="2"/>
-                {/* Detail */}
                 <rect x="190" y="55" width="20" height="8" rx="2" fill={colors.stroke}/>
             </motion.g>
         );
@@ -217,6 +208,15 @@ const FuturisticRobot: FC<{ hatType: string }> = ({ hatType }) => {
             onHoverStart={() => setIsHovered(true)}
             onHoverEnd={() => setIsHovered(false)}
         >
+            {/* NEW: Blurred Red Background on Hover */}
+            <motion.div
+                className="absolute inset-0 bg-red-500/50 -z-10 rounded-full"
+                style={{ filter: 'blur(80px)' }}
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: isHovered ? 1 : 0, scale: isHovered ? 1 : 0.8 }}
+                transition={{ duration: 0.4 }}
+            />
+
             <svg ref={svgRef} viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" className="w-full h-auto">
                 <defs>
                     <radialGradient id="headGradient" cx="0.4" cy="0.4" r="0.6">
@@ -234,11 +234,16 @@ const FuturisticRobot: FC<{ hatType: string }> = ({ hatType }) => {
                             <feMergeNode in="SourceGraphic" />
                         </feMerge>
                     </filter>
+                    {/* NEW: Realistic Shadow Filter */}
+                    <filter id="robotShadow">
+                        <feDropShadow dx="5" dy="10" stdDeviation="5" floodColor="#000000" floodOpacity="0.3"/>
+                    </filter>
                 </defs>
 
                 <motion.g 
                     animate={{ y: [0, -4, 0] }}
                     transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+                    filter="url(#robotShadow)" // Apply shadow here
                 >
                     {/* Body */}
                     <path d="M 200,320 C 150,320 120,280 120,230 L 120,190 H 280 L 280,230 C 280,280 250,320 200,320 Z" fill="url(#bodyGradient)" />
@@ -246,32 +251,30 @@ const FuturisticRobot: FC<{ hatType: string }> = ({ hatType }) => {
                     <rect x="180" y="170" width="40" height="20" fill="#9CA3AF" />
                     <rect x="175" y="175" width="50" height="4" fill="#6B7280" rx="2" />
                     
-                    {/* --- Left Arm --- */}
+                    {/* Left Arm */}
                     <motion.g 
                         transformOrigin="115 190"
                         animate={{ rotate: isHovered ? armRotation.left : 0 }}
                         transition={{ type: "spring", stiffness: 300, damping: 20 }}
                     >
                         <rect x="100" y="190" width="30" height="80" rx="10" fill="#A0AEC0" />
-                        <circle cx="115" cy="190" r="15" fill="#6B7280" /> {/* Shoulder joint */}
-                        <rect x="90" y="260" width="40" height="20" rx="5" fill="#6B7280" /> {/* Hand */}
+                        <circle cx="115" cy="190" r="15" fill="#6B7280" />
+                        <rect x="90" y="260" width="40" height="20" rx="5" fill="#6B7280" />
                     </motion.g>
 
-                    {/* --- Right Arm --- */}
+                    {/* Right Arm */}
                     <motion.g 
                         transformOrigin="285 190"
                         animate={{ rotate: isHovered ? armRotation.right : 0 }}
                         transition={{ type: "spring", stiffness: 300, damping: 20 }}
                     >
                         <rect x="270" y="190" width="30" height="80" rx="10" fill="#A0AEC0" />
-                        <circle cx="285" cy="190" r="15" fill="#6B7280" /> {/* Shoulder joint */}
-                        <rect x="270" y="260" width="40" height="20" rx="5" fill="#6B7280" /> {/* Hand */}
+                        <circle cx="285" cy="190" r="15" fill="#6B7280" />
+                        <rect x="270" y="260" width="40" height="20" rx="5" fill="#6B7280" />
                     </motion.g>
 
                     {/* Head */}
                     <circle cx="200" cy="120" r="60" fill="url(#headGradient)" stroke="#9CA3AF" strokeWidth="2" />
-                    
-                    {/* Eyebrows */}
                     <motion.path d="M 175 110 L 190 108" stroke="#4B5563" strokeWidth="4" strokeLinecap="round" />
                     <motion.path d="M 210 108 L 225 110" stroke="#4B5563" strokeWidth="4" strokeLinecap="round" />
 
@@ -299,12 +302,11 @@ const FuturisticRobot: FC<{ hatType: string }> = ({ hatType }) => {
                     {/* Mouth */}
                     <motion.path 
                         stroke="#6B7280" strokeWidth="3" fill="none" strokeLinecap="round"
-                        initial={{ d: "M 192 150 Q 200 155 208 150" }} // Default happy smile
+                        initial={{ d: "M 192 150 Q 200 155 208 150" }}
                         animate={{ d: isHovered ? "M 195 155 L 205 155" : "M 192 150 Q 200 155 208 150" }}
                         transition={{ type: "spring", stiffness: 400, damping: 15 }}
                     />
                     
-                    {/* Hat */}
                     <AnimatePresence mode="wait">
                         <Hat key={hatType} type={hatType} />
                     </AnimatePresence>
@@ -313,7 +315,6 @@ const FuturisticRobot: FC<{ hatType: string }> = ({ hatType }) => {
         </motion.div>
     );
 };
-
 
 const HeroSection: FC = () => {
     const [index, setIndex] = useState(0);
@@ -328,10 +329,30 @@ const HeroSection: FC = () => {
     const currentContent = heroContent[index];
 
     return (
-        <section className="relative min-h-screen flex items-center bg-gradient-to-br from-white to-gray-100 overflow-hidden">
+        <section className="relative min-h-screen flex items-center bg-gray-50 overflow-hidden">
             <div className="absolute inset-0 opacity-20" style={{ backgroundImage: "url('/grid.svg')", backgroundSize: "40px 40px" }}></div>
-            <div className="absolute top-0 left-0 w-1/3 h-full bg-gradient-to-r from-blue-100/50 to-transparent blur-3xl -z-10"></div>
-            <div className="absolute top-0 right-0 w-1/3 h-full bg-gradient-to-l from-violet-100/50 to-transparent blur-3xl -z-10"></div>
+            
+            {/* NEW: Animated Background Orbs */}
+            <div className="absolute inset-0 -z-10">
+                <motion.div 
+                    className="absolute top-[20%] left-[10%] w-48 h-48 bg-violet-200/50 rounded-full"
+                    style={{ filter: 'blur(60px)'}}
+                    animate={{ x: [0, -30, 50, 0], y: [0, 40, -20, 0] }}
+                    transition={{ duration: 30, repeat: Infinity, ease: 'easeInOut' }}
+                />
+                <motion.div 
+                    className="absolute bottom-[25%] right-[15%] w-40 h-40 bg-blue-200/50 rounded-full"
+                    style={{ filter: 'blur(60px)'}}
+                    animate={{ x: [0, 40, -30, 0], y: [0, -50, 20, 0] }}
+                    transition={{ duration: 25, repeat: Infinity, ease: 'easeInOut', delay: 5 }}
+                />
+                 <motion.div 
+                    className="absolute top-[15%] right-[25%] w-24 h-24 bg-red-100/60 rounded-full hidden md:block"
+                    style={{ filter: 'blur(40px)'}}
+                    animate={{ x: [0, -20, 30, 0], y: [0, 30, -40, 0] }}
+                    transition={{ duration: 35, repeat: Infinity, ease: 'easeInOut', delay: 10 }}
+                />
+            </div>
             
             <div className="container mx-auto px-6 relative z-10 grid lg:grid-cols-2 gap-12 items-center">
                 <div className="text-center lg:text-left">
@@ -365,8 +386,8 @@ const HeroSection: FC = () => {
                             transition={{ type: "spring", stiffness: 300 }}>
                             Explore Jobs
                         </motion.a>
-                        <motion.a href="#professionals" className="w-full sm:w-auto px-8 py-4 text-gray-700 font-bold rounded-xl border-2 border-gray-300"
-                            whileHover={{ scale: 1.05, y: -2, backgroundColor: "#F3F4F6" }}
+                        <motion.a href="#professionals" className="w-full sm:w-auto px-8 py-4 text-gray-700 font-bold rounded-xl border-2 border-gray-300 bg-white/50"
+                            whileHover={{ scale: 1.05, y: -2, backgroundColor: "#F9FAFB" }}
                             transition={{ type: "spring", stiffness: 300 }}>
                             Find Talent
                         </motion.a>
@@ -390,7 +411,7 @@ const HeroSection: FC = () => {
 const TrustedBySection: FC = () => {
     const duplicatedPartners = [...partners, ...partners];
     return (
-        <div className="py-20 bg-gradient-to-b from-gray-100 to-white">
+        <div className="py-20 bg-white">
             <div className="container mx-auto px-6">
                 <h2 className="text-4xl md:text-5xl font-bold text-gray-800 text-center mb-16">
                     Trusted by the Nation's Leading Organizations
@@ -510,7 +531,7 @@ const TestimonialsSection: FC = () => {
     };
 
     return (
-        <AnimatedSection id="testimonials" className="bg-gradient-to-b from-light-blue-50 to-white">
+        <AnimatedSection id="testimonials" className="bg-white">
             <div className="relative max-w-3xl mx-auto text-center">
                 <div className="overflow-hidden relative h-[420px]">
                     <AnimatePresence initial={false}>
@@ -570,7 +591,7 @@ const FAQSection: FC = () => {
     );
 
     return (
-        <AnimatedSection id="faq" className="bg-white">
+        <AnimatedSection id="faq" className="bg-gray-50">
             <motion.h2 variants={sectionVariants} className="text-4xl md:text-5xl font-bold text-gray-800 text-center mb-16">Common Questions</motion.h2>
             <div className="max-w-4xl mx-auto grid md:grid-cols-2 gap-x-12">
                 <div>{faqData.slice(0, 2).map((item, index) => <AccordionItem key={index} item={item} isOpen={openIndex === index} onClick={() => setOpenIndex(openIndex === index ? null : index)} />)}</div>
@@ -581,7 +602,7 @@ const FAQSection: FC = () => {
 };
 
 const CTASection: FC = () => (
-    <div className="py-20 md:py-28">
+    <div className="py-20 md:py-28 bg-white">
         <div className="container mx-auto px-6">
             <div className="relative bg-gradient-to-br from-blue-700 to-violet-800 rounded-3xl p-12 text-center overflow-hidden">
                 <motion.div 
@@ -617,7 +638,7 @@ const CTASection: FC = () => (
 
 export default function HomePage() {
     return (
-        <main className="bg-white">
+        <main>
             <HeroSection />
             <TrustedBySection />
             <ImpactStatsSection />
