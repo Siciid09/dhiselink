@@ -1,10 +1,11 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // TypeScript settings
   typescript: {
-<<<<<<< HEAD
-    ignoreBuildErrors: true, // continue build and show all TS errors
+    ignoreBuildErrors: true, // Continue build even if TS errors exist
   },
-  // --- Add this 'images' block ---
+
+  // Images settings
   images: {
     remotePatterns: [
       {
@@ -13,13 +14,13 @@ const nextConfig = {
         port: '',
         pathname: '/8.x/initials/svg/**',
       },
-      // You can add other domains here in the future
+      // Add other domains here in the future if needed
     ],
-=======
-    // ✅ Ignore all TS errors during build
-    ignoreBuildErrors: true,
->>>>>>> 55fe139b3e819ae9c07bcabd58ac72a47b0d801d
   },
+
+  // Additional Next.js config options can be added here
+  reactStrictMode: true,
+  swcMinify: true,
 };
 
 export default nextConfig;
