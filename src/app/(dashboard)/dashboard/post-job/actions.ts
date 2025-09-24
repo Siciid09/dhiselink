@@ -1,3 +1,5 @@
+// File: app/dashboard/post-job/actions.ts
+
 "use server";
 
 import { createServerActionClient } from "@supabase/auth-helpers-nextjs";
@@ -7,55 +9,90 @@ import { revalidatePath } from "next/cache";
 
 interface ActionState {
   error: string | null;
+  success: boolean;
 }
 
-export async function postJob(prevState: ActionState, formData: FormData): Promise<ActionState> {
-  const supabase = createServerActionClient({ cookies });
-  const { data: { user } } = await supabase.auth.getUser();
+export async function createOpportunity(prevState: ActionState, formData: FormData): Promise<ActionState> {
+    const supabase = createServerActionClient({ cookies });
+    const { data: { user } } = await supabase.auth.getUser();
 
-  if (!user) {
-    return { error: "You must be logged in to post a job." };
-  }
+    if (!user) {
+        return { error: "You must be logged in to post an opportunity.", success: false };
+    }
 
-  // Get OLD and NEW data from the form
-  const title = formData.get("title") as string;
-  const location = formData.get("location") as string;
-  const job_type = formData.get("job_type") as string;
-  const description = formData.get("description") as string;
-  const salary_range = formData.get("salary_range") as string;
-  const deadline = formData.get("deadline") as string;
-  const requirementsInput = formData.get("requirements") as string;
+    // --- Get all universal data from the form ---
+    const opportunityData = {
+        title: formData.get("title") as string,
+        location: formData.get("location") as string,
+        opportunity_type: formData.get("opportunity_type") as string,
+        description: formData.get("description") as string,
+        requirements: (formData.get("requirements") as string)?.split(',').map(req => req.trim()).filter(Boolean),
+        deadline: formData.get("deadline") as string || null,
+        compensation: formData.get("compensation") as string,
+        category: formData.get("category") as string,
+        application_method: formData.get("application_method") as string,
+        tags: (formData.get("tags") as string)?.split(',').map(tag => tag.trim()).filter(Boolean),
+    };
 
-  // Simple validation
-  if (!title || !location || !job_type || !description) {
-    return { error: "Please fill out all required fields." };
-  }
-  
-  // Convert comma-separated requirements into an array for the database
-  const requirements = requirementsInput ? requirementsInput.split(',').map(req => req.trim()) : [];
+    if (!opportunityData.title || !opportunityData.opportunity_type || !opportunityData.description) {
+        return { error: "Please fill out all required fields.", success: false };
+    }
 
-  // Insert the new job into the 'jobs' table
-  const { error } = await supabase
-    .from("jobs")
-    .insert({
-      organization_id: user.id, // Link the job to the logged-in organization
-      title,
-      location,
-      type: job_type, // NOTE: Your DB column is `type`, not `job_type`
-      description,
-      salary_range,
-      deadline,
-      requirements,
-      status: 'active', // Automatically set the job as active
-    });
+    let error;
 
-  if (error) {
-    console.error("Job Post Error:", error);
-    return { error: `Database Error: ${error.message}` };
-  }
-  
-  // On success, clear the cache and redirect
-  revalidatePath("/opportunities");
-  revalidatePath("/dashboard");
-  redirect("/dashboard?message=Job posted successfully!");
+    // --- Smartly save to the correct table based on type ---
+    switch (opportunityData.opportunity_type) {
+        case 'Job':
+        case 'Internship':
+            ({ error } = await supabase.from("jobs").insert({
+                organization_id: user.id,
+                title: opportunityData.title,
+                location: opportunityData.location,
+                job_type: opportunityData.opportunity_type,
+                description: opportunityData.description,
+                salary_range: opportunityData.compensation,
+                deadline: opportunityData.deadline,
+                requirements: opportunityData.requirements,
+            }));
+            break;
+        
+        case 'Program':
+        case 'Fellowship':
+            ({ error } = await supabase.from("programs").insert({
+                organization_id: user.id,
+                title: opportunityData.title,
+                department: opportunityData.category,
+                description: opportunityData.description,
+                duration: formData.get("duration") as string, // Specific field for programs
+                deadline: opportunityData.deadline,
+                eligibility: opportunityData.requirements,
+            }));
+            break;
+
+        case 'Project':
+        case 'Grant':
+        case 'Other':
+            ({ error } = await supabase.from("initiatives").insert({
+                organization_id: user.id,
+                title: opportunityData.title,
+                type: opportunityData.opportunity_type,
+                description: opportunityData.description,
+                budget_range: opportunityData.compensation,
+                end_date: opportunityData.deadline,
+                requirements: opportunityData.requirements,
+            }));
+            break;
+
+        default:
+            return { error: "Invalid opportunity type selected.", success: false };
+    }
+
+    if (error) {
+        console.error("Opportunity Post Error:", error);
+        return { error: `Database Error: ${error.message}`, success: false };
+    }
+    
+    revalidatePath("/opportunities");
+    revalidatePath("/dashboard");
+    redirect("/dashboard?message=Opportunity posted successfully!");
 }
