@@ -12,27 +12,22 @@ export default async function OnboardingPage() {
 
     const { data: profile } = await supabase
         .from('profiles')
-        .select('role')
+        .select('role, organization_type') // Also select organization_type to pass it
         .eq('id', session.user.id)
         .single();
 
     if (!profile || !profile.role) {
+        // If the user has no role, send them back to select one.
         redirect('/select-role');
     }
 
-    // Now correctly redirects ALL roles to their own page
-    switch (profile.role) {
-        case 'individual':
-            redirect('/onboarding/individual');
-        case 'company':
-            redirect('/onboarding/company');
-        case 'university':
-            redirect('/onboarding/university');
-        case 'ngo_gov':
-            redirect('/onboarding/ngo-gov');
-        case 'other': // Added redirect for the 'other' role
-            redirect('/onboarding/other');
-        default:
-            redirect('/select-role');
+    // Updated Logic: Redirect based on the simplified role structure
+    if (profile.role === 'individual') {
+        redirect('/onboarding/individual');
+    } else {
+        // Any other role (company, university, ngo_gov, other) is an organization.
+        // We pass the specific orgType as a query parameter to the new page.
+        const orgType = profile.organization_type;
+        redirect(`/onboarding/organization?type=${orgType}`);
     }
 }

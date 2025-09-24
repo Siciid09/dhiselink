@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Landmark, MapPin, Loader2, Shield, Package, Search } from 'lucide-react';
+import { Landmark, MapPin, Loader2, Shield, Package, Search, Building } from 'lucide-react';
 import { useDebouncedCallback } from 'use-debounce';
 
 type OrgProfile = {
@@ -13,17 +13,22 @@ type OrgProfile = {
   location: string | null;
   bio: string | null;
   role: 'ngo_gov' | 'other';
-  organization_type: 'Government' | 'NGO' | null; // This new field is crucial for filtering
+  organization_type: 'Government' | 'NGO' | null;
+  // Updated: Added the new subtype field
+  organization_subtype: string | null; 
 };
 
 const OrgCard = ({ profile }: { profile: OrgProfile }) => {
   const shortDescription = profile.bio ? profile.bio.split(' ').slice(0, 15).join(' ') + '...' : 'Leading initiatives for community and public development.';
   
-  // This logic now correctly displays the specific type (Gov or NGO)
+  // Updated: The display logic for the card's role/type
   let roleName = 'Organization';
-  let RoleIcon = Package;
+  let RoleIcon = Building; 
+
   if (profile.role === 'other') {
-    roleName = 'Other Organization';
+    // If the role is 'other', display its specific subtype
+    roleName = profile.organization_subtype || 'Organization';
+    RoleIcon = Package;
   } else if (profile.organization_type === 'Government') {
     roleName = 'Government';
     RoleIcon = Landmark;
@@ -85,13 +90,11 @@ export default function GovernmentAndOthersPage() {
       .filter(org => {
         if (activeTab === 'all') return true;
         if (activeTab === 'other') return org.role === 'other';
-        // This now correctly filters for the separate Government and NGO tabs
         return org.organization_type === activeTab;
       })
       .filter(org => org.organization_name.toLowerCase().includes(searchQuery.toLowerCase()));
   }, [activeTab, searchQuery, orgs]);
 
-  // --- NEW: The 4 tabs you requested ---
   const tabs = [
     { id: 'all', name: 'All' }, { id: 'Government', name: 'Government' },
     { id: 'NGO', name: 'NGOs' }, { id: 'other', name: 'Other' },
@@ -108,7 +111,6 @@ export default function GovernmentAndOthersPage() {
           <p className="mt-4 text-lg text-slate-600 max-w-2xl mx-auto">Discover public sector bodies, non-governmental organizations, and other entities leading key initiatives.</p>
         </header>
 
-        {/* --- UPDATED: Search and Tabs are no longer sticky and part of the normal page flow --- */}
         <div className="mb-12">
             <div className="relative mb-4">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />

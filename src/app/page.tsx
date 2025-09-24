@@ -124,22 +124,12 @@ const AnimatedCounter: FC<{ value: number, className?: string }> = ({ value, cla
 
 // --- 3. NEW & REDESIGNED PAGE SECTION COMPONENTS ---
 
-/**
- * Advanced Futuristic Robot Component (UPDATED)
- * Features: 
- * - Red hover glow for focused interaction.
- * - Persistent realistic drop shadow for depth.
- * - Defensive mode on hover: arms block, expression changes.
- * - Fast, realistic eye-tracking.
- * - Single hat design with dynamic colors.
- */
 const FuturisticRobot: FC<{ hatType: string }> = ({ hatType }) => {
     const [isHovered, setIsHovered] = useState(false);
     const [isBlinking, setIsBlinking] = useState(false);
     const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
     const svgRef = useRef<SVGSVGElement>(null);
 
-    // Mouse tracking for eyes and arms
     useEffect(() => {
         const handleMouseMove = (e: MouseEvent) => {
             if (!svgRef.current) return;
@@ -152,7 +142,6 @@ const FuturisticRobot: FC<{ hatType: string }> = ({ hatType }) => {
         return () => window.removeEventListener('mousemove', handleMouseMove);
     }, []);
 
-    // Random blinking
     useEffect(() => {
         const blinkTimer = setInterval(() => {
             setIsBlinking(true);
@@ -161,7 +150,6 @@ const FuturisticRobot: FC<{ hatType: string }> = ({ hatType }) => {
         return () => clearInterval(blinkTimer);
     }, []);
 
-    // Calculations for dynamic animations
     const robotCenter = { x: 200, y: 125 };
     const deltaX = mousePos.x - robotCenter.x;
     const deltaY = mousePos.y - robotCenter.y;
@@ -181,9 +169,9 @@ const FuturisticRobot: FC<{ hatType: string }> = ({ hatType }) => {
 
     const Hat: FC<{ type: string }> = ({ type }) => {
         const hatColors: { [key: string]: { fill: string, stroke: string } } = {
-            civil: { fill: "#FBBF24", stroke: "#F59E0B" }, // Yellow
-            tech: { fill: "#3B82F6", stroke: "#2563EB" }, // Blue
-            safety: { fill: "#22C55E", stroke: "#16A34A" }, // Green
+            civil: { fill: "#FBBF24", stroke: "#F59E0B" },
+            tech: { fill: "#3B82F6", stroke: "#2563EB" },
+            safety: { fill: "#22C55E", stroke: "#16A34A" },
         };
         const colors = hatColors[type] || hatColors.civil;
 
@@ -208,7 +196,6 @@ const FuturisticRobot: FC<{ hatType: string }> = ({ hatType }) => {
             onHoverStart={() => setIsHovered(true)}
             onHoverEnd={() => setIsHovered(false)}
         >
-            {/* NEW: Blurred Red Background on Hover */}
             <motion.div
                 className="absolute inset-0 bg-red-500/50 -z-10 rounded-full"
                 style={{ filter: 'blur(80px)' }}
@@ -234,7 +221,6 @@ const FuturisticRobot: FC<{ hatType: string }> = ({ hatType }) => {
                             <feMergeNode in="SourceGraphic" />
                         </feMerge>
                     </filter>
-                    {/* NEW: Realistic Shadow Filter */}
                     <filter id="robotShadow">
                         <feDropShadow dx="5" dy="10" stdDeviation="5" floodColor="#000000" floodOpacity="0.3"/>
                     </filter>
@@ -243,15 +229,11 @@ const FuturisticRobot: FC<{ hatType: string }> = ({ hatType }) => {
                 <motion.g 
                     animate={{ y: [0, -4, 0] }}
                     transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-                    filter="url(#robotShadow)" // Apply shadow here
+                    filter="url(#robotShadow)"
                 >
-                    {/* Body */}
                     <path d="M 200,320 C 150,320 120,280 120,230 L 120,190 H 280 L 280,230 C 280,280 250,320 200,320 Z" fill="url(#bodyGradient)" />
-                    {/* Neck */}
                     <rect x="180" y="170" width="40" height="20" fill="#9CA3AF" />
                     <rect x="175" y="175" width="50" height="4" fill="#6B7280" rx="2" />
-                    
-                    {/* Left Arm */}
                     <motion.g 
                         transformOrigin="115 190"
                         animate={{ rotate: isHovered ? armRotation.left : 0 }}
@@ -261,8 +243,6 @@ const FuturisticRobot: FC<{ hatType: string }> = ({ hatType }) => {
                         <circle cx="115" cy="190" r="15" fill="#6B7280" />
                         <rect x="90" y="260" width="40" height="20" rx="5" fill="#6B7280" />
                     </motion.g>
-
-                    {/* Right Arm */}
                     <motion.g 
                         transformOrigin="285 190"
                         animate={{ rotate: isHovered ? armRotation.right : 0 }}
@@ -272,13 +252,9 @@ const FuturisticRobot: FC<{ hatType: string }> = ({ hatType }) => {
                         <circle cx="285" cy="190" r="15" fill="#6B7280" />
                         <rect x="270" y="260" width="40" height="20" rx="5" fill="#6B7280" />
                     </motion.g>
-
-                    {/* Head */}
                     <circle cx="200" cy="120" r="60" fill="url(#headGradient)" stroke="#9CA3AF" strokeWidth="2" />
                     <motion.path d="M 175 110 L 190 108" stroke="#4B5563" strokeWidth="4" strokeLinecap="round" />
                     <motion.path d="M 210 108 L 225 110" stroke="#4B5563" strokeWidth="4" strokeLinecap="round" />
-
-                    {/* Eyes */}
                     <motion.g 
                         animate={{ x: eyeOffset.x, y: eyeOffset.y }} 
                         transition={{ type: 'spring', stiffness: 400, damping: 25 }}
@@ -298,15 +274,12 @@ const FuturisticRobot: FC<{ hatType: string }> = ({ hatType }) => {
                             transition={{ duration: 0.075 }}
                         />
                     </motion.g>
-                    
-                    {/* Mouth */}
                     <motion.path 
                         stroke="#6B7280" strokeWidth="3" fill="none" strokeLinecap="round"
                         initial={{ d: "M 192 150 Q 200 155 208 150" }}
                         animate={{ d: isHovered ? "M 195 155 L 205 155" : "M 192 150 Q 200 155 208 150" }}
                         transition={{ type: "spring", stiffness: 400, damping: 15 }}
                     />
-                    
                     <AnimatePresence mode="wait">
                         <Hat key={hatType} type={hatType} />
                     </AnimatePresence>
@@ -315,6 +288,7 @@ const FuturisticRobot: FC<{ hatType: string }> = ({ hatType }) => {
         </motion.div>
     );
 };
+
 
 const HeroSection: FC = () => {
     const [index, setIndex] = useState(0);
@@ -331,8 +305,6 @@ const HeroSection: FC = () => {
     return (
         <section className="relative min-h-screen flex items-center bg-gray-50 overflow-hidden">
             <div className="absolute inset-0 opacity-20" style={{ backgroundImage: "url('/grid.svg')", backgroundSize: "40px 40px" }}></div>
-            
-            {/* NEW: Animated Background Orbs */}
             <div className="absolute inset-0 -z-10">
                 <motion.div 
                     className="absolute top-[20%] left-[10%] w-48 h-48 bg-violet-200/50 rounded-full"
@@ -356,12 +328,14 @@ const HeroSection: FC = () => {
             
             <div className="container mx-auto px-6 relative z-10 grid lg:grid-cols-2 gap-12 items-center">
                 <div className="text-center lg:text-left">
-                    <AnimatePresence mode="wait">
+                    {/* FIXED: Removed mode="wait" for smooth cross-fade transition */}
+                    <AnimatePresence>
                         <motion.div
                             key={index}
-                            initial={{ opacity: 0, y: 30 }}
-                            animate={{ opacity: 1, y: 0, transition: { staggerChildren: 0.15, duration: 0.7, ease: [0.22, 1, 0.36, 1] } }}
-                            exit={{ opacity: 0, y: -30, transition: { duration: 0.3 } }}
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0, transition: { staggerChildren: 0.1, duration: 0.5, ease: "easeOut" } }}
+                            exit={{ opacity: 0, y: -20, transition: { duration: 0.4 } }}
+                            className="relative" // Use relative positioning for smooth transitions
                         >
                             <motion.div variants={sectionVariants} className="inline-block px-4 py-2 mb-6 border border-gray-200 bg-white/50 backdrop-blur-lg rounded-full text-gray-700 font-medium">
                                 {currentContent.tagline}
@@ -381,14 +355,21 @@ const HeroSection: FC = () => {
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.5, delay: 0.4 }}
                     >
-                        <motion.a href="#jobs" className="w-full sm:w-auto px-8 py-4 bg-gradient-to-r from-blue-600 to-violet-600 text-white font-bold rounded-xl shadow-lg"
-                            whileHover={{ scale: 1.05, y: -2, boxShadow: "0 10px 20px rgba(96, 165, 250, 0.5)" }}
-                            transition={{ type: "spring", stiffness: 300 }}>
+                        {/* UPDATED: Modern CTA Buttons */}
+                        <motion.a 
+                            href="#jobs" 
+                            className="w-full sm:w-auto px-8 py-4 bg-blue-600 text-white font-bold rounded-xl shadow-lg"
+                            whileHover={{ scale: 1.05, y: -2, filter: "brightness(1.1)", boxShadow: "0 10px 20px rgba(59, 130, 246, 0.5)" }}
+                            transition={{ type: "spring", stiffness: 300 }}
+                        >
                             Explore Jobs
                         </motion.a>
-                        <motion.a href="#professionals" className="w-full sm:w-auto px-8 py-4 text-gray-700 font-bold rounded-xl border-2 border-gray-300 bg-white/50"
-                            whileHover={{ scale: 1.05, y: -2, backgroundColor: "#F9FAFB" }}
-                            transition={{ type: "spring", stiffness: 300 }}>
+                        <motion.a 
+                            href="#professionals" 
+                            className="w-full sm:w-auto px-8 py-4 bg-gray-900 text-white font-bold rounded-xl"
+                            whileHover={{ scale: 1.05, y: -2, backgroundColor: "#000000" }}
+                            transition={{ type: "spring", stiffness: 300 }}
+                        >
                             Find Talent
                         </motion.a>
                     </motion.div>
@@ -407,6 +388,8 @@ const HeroSection: FC = () => {
         </section>
     );
 };
+
+// ... (The rest of the components remain unchanged)
 
 const TrustedBySection: FC = () => {
     const duplicatedPartners = [...partners, ...partners];
@@ -632,9 +615,6 @@ const CTASection: FC = () => (
         </div>
     </div>
 );
-
-
-// --- 4. MAIN PAGE COMPONENT ---
 
 export default function HomePage() {
     return (

@@ -1,5 +1,3 @@
-// File: app/api/companies/route.ts
-
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
@@ -12,6 +10,7 @@ export async function GET() {
   try {
     const { data, error } = await supabase
       .from('profiles')
+      // --- FIX 1: Selecting all necessary fields for the card ---
       .select(`
         id,
         organization_name,
@@ -19,11 +18,13 @@ export async function GET() {
         cover_image_url,
         location,
         industry,
-        tagline
+        tagline,
+        created_at 
       `)
       .eq('role', 'company')
       .eq('onboarding_complete', true)
-      .order('organization_name');
+      // --- FIX 2: Sorting by latest created profile first ---
+      .order('created_at', { ascending: false });
 
     if (error) throw error;
 

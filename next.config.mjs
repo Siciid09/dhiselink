@@ -14,11 +14,22 @@ const nextConfig = {
         port: '',
         pathname: '/8.x/initials/svg/**',
       },
-      // Add other domains here in the future if needed
+      {
+        protocol: 'https',
+        hostname: 'encrypted-tbn0.gstatic.com',
+        port: '',
+        pathname: '/images/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'qpdipkmbwmyhoerkzjad.supabase.co',
+        port: '',
+        pathname: '/storage/v1/object/public/**',
+      },
     ],
   },
 
-  // Additional Next.js config options can be added here
+  // Additional Next.js config options
   reactStrictMode: true,
   swcMinify: true,
 };

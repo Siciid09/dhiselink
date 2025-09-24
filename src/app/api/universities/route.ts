@@ -7,12 +7,11 @@ export const dynamic = 'force-dynamic';
 export async function GET() {
   const supabase = createRouteHandlerClient({ cookies });
   try {
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('id, organization_name, bio, location, employee_count, logo_url')
-      .eq('role', 'university') // Filter for universities
-      .eq('onboarding_complete', true);
+    // --- FIX: Call the new database function to get all the data at once ---
+    const { data, error } = await supabase.rpc('get_universities_with_program_count');
+    
     if (error) throw error;
+    
     return NextResponse.json(data);
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });

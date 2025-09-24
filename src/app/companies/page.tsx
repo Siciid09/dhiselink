@@ -1,5 +1,3 @@
-// File: app/companies/page.tsx (Minor Update)
-
 "use client";
 
 import { useState, useEffect } from 'react';
@@ -7,7 +5,6 @@ import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Building, MapPin, Briefcase, Loader2 } from 'lucide-react';
 
-// ... (Type definition remains the same) ...
 type CompanyProfile = {
   id: string;
   organization_name: string;
@@ -17,7 +14,6 @@ type CompanyProfile = {
   industry: string | null;
   tagline: string | null;
 };
-
 
 const CompanyCard = ({ company }: { company: CompanyProfile }) => {
   return (
@@ -31,7 +27,6 @@ const CompanyCard = ({ company }: { company: CompanyProfile }) => {
     >
       <Link href={`/organizations/${company.id}`} className="block h-full">
         <div className="relative h-32 bg-slate-200">
-          {/* FIX: Only show an image if cover_image_url exists */}
           {company.cover_image_url ? (
             <img
               src={company.cover_image_url}
@@ -69,7 +64,6 @@ const CompanyCard = ({ company }: { company: CompanyProfile }) => {
   );
 };
 
-// ... (The rest of the CompaniesPage component remains the same) ...
 export default function CompaniesPage() {
   const [companies, setCompanies] = useState<CompanyProfile[]>([]);
   const [loading, setLoading] = useState(true);

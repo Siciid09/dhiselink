@@ -1,17 +1,39 @@
 "use server";
 
-export async function completeOtherOnboarding(formData: FormData) {
-  try {
-    // Convert formData into a plain object for logging or DB use
-    const data = Object.fromEntries(formData);
+import { createServerActionClient } from "@supabase/auth-helpers-nextjs";
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
+import { revalidatePath } from "next/cache";
 
-    // Example: save to DB or handle logic (placeholder for now)
-    console.log("Other onboarding submitted:", data);
+interface ActionState { error: string | null; }
 
-    // ✅ Always return something predictable
-    return { success: true, message: "Onboarding completed successfully." };
-  } catch (error) {
-    console.error("Onboarding error:", error);
-    return { success: false, message: "Something went wrong." };
-  }
+export async function completeOtherOnboarding(prevState: ActionState, formData: FormData): Promise<ActionState> {
+    const supabase = createServerActionClient({ cookies });
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) { return { error: "You must be logged in." }; }
+
+    const organizationName = formData.get("organization_name") as string;
+    const websiteUrl = formData.get("website_url") as string;
+    const organizationSubtype = formData.get("organization_subtype") as string;
+
+    if (!organizationName || !websiteUrl || !organizationSubtype) { return { error: "Please fill out all fields." }; }
+    
+    // Update the user's row in the 'profiles' table with the new subtype
+    const { error } = await supabase
+        .from("profiles")
+        .update({ 
+            organization_name: organizationName,
+            website_url: websiteUrl,
+            organization_subtype: organizationSubtype,
+            onboarding_complete: true
+        })
+        .eq("id", user.id);
+
+    if (error) {
+        return { error: `Database Error: ${error.message}` };
+    }
+    
+    revalidatePath("/dashboard");
+    redirect("/dashboard");
 }
