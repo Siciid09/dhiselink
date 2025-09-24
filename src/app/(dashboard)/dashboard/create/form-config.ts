@@ -1,6 +1,3 @@
-// app/dashboard/create/form-config.ts
-
-// Define the type for a single form field
 export type FormField = {
   name: string;
   label: string;
@@ -8,15 +5,12 @@ export type FormField = {
   type: 'text' | 'textarea' | 'select';
   required?: boolean;
   helpText?: string;
-  // For select fields
   options?: { value: string; label: string }[];
-  // For dependent select fields
   dependsOn?: string;
   optionsMap?: Record<string, string[]>;
   defaultValue?: string;
 };
 
-// Define the type for the entire form configuration
 export interface FormConfig {
   pageTitle: string;
   pageDescription: string;
@@ -25,7 +19,6 @@ export interface FormConfig {
   opportunityType: string;
 }
 
-// The detailed service categories for the Engineering/Construction sector
 const serviceCategories = {
   "Engineering & Design": ["Civil Engineering", "Structural Engineering", "Architecture & Building Design", "Surveying & Land Assessment"],
   "Construction": ["Road & Bridge Construction", "Residential & Commercial Buildings", "Renovation & Remodeling"],
@@ -34,7 +27,6 @@ const serviceCategories = {
   "Technical Services": ["Plumbing & Electrical (MEP)", "Fabrication & Welding", "Safety & Inspection"],
 };
 
-// The single source of truth for all form configurations
 export const formConfigs: Record<string, FormConfig> = {
   job: {
     pageTitle: "Post a New Job",
@@ -42,11 +34,12 @@ export const formConfigs: Record<string, FormConfig> = {
     submitButtonText: "Publish Job Posting",
     opportunityType: "Job",
     fields: [
-      { name: 'title', label: 'Job Title', placeholder: 'e.g., Senior Marketing Manager', type: 'text', required: true },
+      { name: 'title', label: 'Job Title', placeholder: 'e.g., Senior Software Engineer', type: 'text', required: true },
       { name: 'location', label: 'Location', placeholder: 'e.g., Hargeisa, Remote', type: 'text', required: true },
-      { name: 'description', label: 'Job Description', placeholder: 'Describe the role, responsibilities, culture, and benefits...', type: 'textarea', required: true },
-      { name: 'requirements', label: 'Key Requirements', placeholder: 'e.g., Bachelor\'s Degree, 5+ years experience', type: 'textarea', helpText: 'Separate each requirement with a comma.' },
-      { name: 'compensation', label: 'Compensation / Salary Range', placeholder: 'e.g., $2500/month, Competitive', type: 'text' },
+      { name: 'description', label: 'Job Description', placeholder: 'Describe the role and responsibilities...', type: 'textarea', required: true },
+      // --- CHANGE: Updated help text for consistency ---
+      { name: 'requirements', label: 'Key Requirements', placeholder: 'e.g., Bachelor\'s Degree\n5+ years experience', type: 'textarea', helpText: 'Enter each requirement on a new line.' },
+      { name: 'salary_range', label: 'Compensation / Salary Range', placeholder: 'e.g., $2500/month, Competitive', type: 'text' },
       { name: 'deadline', label: 'Application Deadline (Optional)', placeholder: 'e.g., 2025-12-31', type: 'text' },
     ],
   },
@@ -57,10 +50,11 @@ export const formConfigs: Record<string, FormConfig> = {
     opportunityType: "Program",
     fields: [
         { name: 'title', label: 'Program Name', placeholder: 'e.g., B.Sc. in Computer Science', type: 'text', required: true },
-        { name: 'category', label: 'Department / Faculty', placeholder: 'e.g., Faculty of Computing', type: 'text', required: true },
+        { name: 'department', label: 'Department / Faculty', placeholder: 'e.g., Faculty of Computing', type: 'text', required: true },
         { name: 'description', label: 'Program Description', placeholder: 'Describe the program, curriculum, and outcomes...', type: 'textarea', required: true },
         { name: 'duration', label: 'Program Duration', placeholder: 'e.g., 4 Years, 6 Months', type: 'text' },
-        { name: 'requirements', label: 'Eligibility / Requirements', placeholder: 'e.g., High School Diploma, Specific Grades', type: 'textarea', helpText: 'Separate each requirement with a comma.' },
+        // --- CHANGE: Updated help text ---
+        { name: 'eligibility', label: 'Eligibility / Requirements', placeholder: 'e.g., High School Diploma\nSpecific Grades', type: 'textarea', helpText: 'Enter each requirement on a new line.' },
         { name: 'deadline', label: 'Application Deadline (Optional)', placeholder: 'e.g., 2025-08-30', type: 'text' },
     ],
   },
@@ -71,26 +65,10 @@ export const formConfigs: Record<string, FormConfig> = {
     opportunityType: "Service",
     fields: [
       { name: 'title', label: 'Service Name', placeholder: 'e.g., Commercial Building Construction', type: 'text', required: true },
-      { 
-        name: 'category', 
-        label: 'Service Category', 
-        type: 'select', 
-        required: true, 
-        placeholder: 'Select a category',
-        options: Object.keys(serviceCategories).map(cat => ({ value: cat, label: cat }))
-      },
-      { 
-        name: 'subcategory', 
-        label: 'Subcategory', 
-        type: 'select',
-        required: true,
-        placeholder: 'Select a subcategory',
-        dependsOn: 'category', 
-        optionsMap: serviceCategories,
-        options: [], // Initially empty, populated by CreateForm component
-      },
+      { name: 'category', label: 'Service Category', type: 'select', required: true, placeholder: 'Select a category', options: Object.keys(serviceCategories).map(cat => ({ value: cat, label: cat })) },
+      { name: 'subcategory', label: 'Subcategory', type: 'select', required: true, placeholder: 'Select a subcategory', dependsOn: 'category', optionsMap: serviceCategories, options: [] },
       { name: 'description', label: 'Service Description', placeholder: 'Describe the service, your process, and key deliverables.', type: 'textarea', required: true },
-      { name: 'price', label: 'Price / Rate', placeholder: 'e.g., $50/hour, Starting from $10,000, Project-based', type: 'text' },
+      { name: 'price', label: 'Price / Rate', placeholder: 'e.g., $50/hour, Project-based', type: 'text' },
     ],
   },
   project: {
@@ -100,17 +78,30 @@ export const formConfigs: Record<string, FormConfig> = {
     opportunityType: "Project",
     fields: [
       { name: 'title', label: 'Title', placeholder: 'e.g., Construction of New Office Building', type: 'text', required: true },
-      { name: 'opportunity_type', label: 'Posting Type', placeholder: 'Select a type', type: 'select', required: true, options: [
+      { name: 'type', label: 'Posting Type', placeholder: 'Select a type', type: 'select', required: true, options: [
         { value: 'Project', label: 'Project' },
+        { value: 'Event', label: 'Event' },
         { value: 'Tender', label: 'Tender' },
         { value: 'Announcement', label: 'Announcement' },
-        { value: 'Event', label: 'Event' },
         { value: 'Grant', label: 'Grant' },
       ], defaultValue: 'Project' },
       { name: 'description', label: 'Detailed Description', placeholder: 'Scope of work, objectives, deliverables...', type: 'textarea', required: true },
-      { name: 'compensation', label: 'Budget Range (Optional)', placeholder: 'e.g., $10,000 - $15,000', type: 'text' },
-      { name: 'requirements', label: 'Requirements / Eligibility', placeholder: 'e.g., Must be a registered company', type: 'textarea', helpText: 'Separate each item with a comma.'},
-      { name: 'deadline', label: 'Submission Deadline', placeholder: 'e.g., 2025-11-15', type: 'text', required: true },
+      { name: 'budget_range', label: 'Budget Range (Optional)', placeholder: 'e.g., $10,000 - $15,000', type: 'text' },
+      // --- CHANGE: Updated help text for consistency ---
+      { name: 'requirements', label: 'Requirements / Eligibility', placeholder: 'e.g., Must be a registered company', type: 'textarea', helpText: 'Enter each requirement on a new line.'},
+      { name: 'end_date', label: 'Submission Deadline', placeholder: 'e.g., 2025-11-15', type: 'text', required: true },
+    ],
+  },
+  idea: {
+    pageTitle: "Submit a New Idea",
+    pageDescription: "Share an idea for a new project or venture with the community.",
+    submitButtonText: "Submit Idea",
+    opportunityType: "Idea",
+    fields: [
+        { name: 'title', label: 'Idea Title', placeholder: 'e.g., Solar Powered Water Purification System', type: 'text', required: true },
+        { name: 'summary', label: 'Summary (Short Pitch)', placeholder: 'A brief, one-sentence summary of your idea.', type: 'textarea', required: true },
+        { name: 'details', label: 'Full Details', placeholder: 'Describe the problem, your proposed solution, and potential impact.', type: 'textarea', required: true },
+        { name: 'tags', label: 'Tags / Keywords', placeholder: 'e.g., Renewable Energy, Health, Technology', type: 'text', helpText: 'Separate with commas. This helps others discover your idea.' },
     ],
   }
 };

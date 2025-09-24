@@ -18,6 +18,8 @@ import {
 } from 'lucide-react';
 import DeleteButton from './DeleteButton';
 
+// No changes were needed in this file. It dynamically adapts to the data it receives.
+
 type TypeConfigEntry = {
     name: string;
     icon: React.ElementType | null;
@@ -31,6 +33,8 @@ const typeConfig: Record<string, TypeConfigEntry> = {
     project: { name: 'Project', icon: Shield, className: 'bg-slate-100 text-slate-800 border border-slate-200' },
     tender: { name: 'Tender', icon: Shield, className: 'bg-amber-100 text-amber-800 border border-amber-200' },
     grant: { name: 'Grant', icon: Shield, className: 'bg-rose-100 text-rose-800 border border-rose-200' },
+    event: { name: 'Event', icon: Shield, className: 'bg-indigo-100 text-indigo-800 border border-indigo-200'},
+    announcement: { name: 'Announcement', icon: Shield, className: 'bg-gray-100 text-gray-800 border border-gray-200'},
     default: { name: 'Item', icon: null, className: 'bg-gray-100 text-gray-800 border border-gray-200' }
 };
 
@@ -74,7 +78,7 @@ export default function ManagementClientUI({ initialItems }: { initialItems: Opp
                     </motion.div>
                 )}
                 {errorMessage && (
-                     <motion.div initial={{ opacity: 0, y: -20, height: 0 }} animate={{ opacity: 1, y: 0, height: 'auto' }} exit={{ opacity: 0, y: -20, height: 0 }}
+                       <motion.div initial={{ opacity: 0, y: -20, height: 0 }} animate={{ opacity: 1, y: 0, height: 'auto' }} exit={{ opacity: 0, y: -20, height: 0 }}
                         className="flex items-center justify-between gap-4 bg-red-600 text-white p-4 rounded-lg mb-6 shadow-lg">
                         <div className="flex items-center gap-3"><AlertTriangle /><span className="font-semibold">{errorMessage}</span></div>
                         <button onClick={() => setErrorMessage(null)} className="p-1 rounded-full hover:bg-red-700 transition-colors"><X size={18} /></button>
@@ -142,11 +146,11 @@ export default function ManagementClientUI({ initialItems }: { initialItems: Opp
                         </table>
                     </div>
                 ) : (
-                     <div className="text-center py-20 px-4">
-                       <AlertTriangle className="mx-auto text-slate-400" size={40} />
-                       <h3 className="mt-4 text-lg font-semibold text-slate-700">No Content Found</h3>
-                       <p className="text-slate-500 text-sm mt-1">There is no content matching the filter "{activeFilter}".</p>
-                     </div>
+                       <div className="text-center py-20 px-4">
+                           <AlertTriangle className="mx-auto text-slate-400" size={40} />
+                           <h3 className="mt-4 text-lg font-semibold text-slate-700">No Content Found</h3>
+                           <p className="text-slate-500 text-sm mt-1">There is no content matching the filter "{activeFilter}".</p>
+                       </div>
                 )}
             </main>
         </div>
