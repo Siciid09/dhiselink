@@ -1,33 +1,25 @@
-import { createServerComponentClient } from '@supabase/auth-helpers-nextjs';
-import { cookies } from 'next/headers';
-import { notFound, redirect } from 'next/navigation';
-import Link from 'next/link';
+"use client"; // MUST be first line
+
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useFormState, useFormStatus } from 'react-dom';
 import { PlusCircle, Edit, Trash2, Save, X, Briefcase, BookOpen, Heart, AlertTriangle, Wrench } from 'lucide-react';
-import { manageContent } from '../create/actions'; // FIX: Correctly imports the new action
+import { manageContent } from '../create/actions'; // Client action
+import Link from 'next/link';
 
-// =================================================================================
-// CLIENT COMPONENT
-// All interactive logic (state, forms, buttons) is in this component.
-// =================================================================================
-"use client";
-
+// ================== CLIENT COMPONENT ==================
 interface ActionState {
   error?: string | null;
   success?: boolean;
 }
 
-function ManageContentClientUI({ initialItems, contentType, contentConfig }: { initialItems: any[], contentType: string, contentConfig: any }) {
+export function ManageContentClientUI({ initialItems, contentType, contentConfig }: { initialItems: any[], contentType: string, contentConfig: any }) {
     const [items, setItems] = useState(initialItems);
     const [editingItemId, setEditingItemId] = useState<string | null>(null);
 
-    // When the form action is successful, we refetch the items from the server
-    // to ensure the list is up to date without a full page reload.
     const refetchItems = async () => {
         const response = await fetch(`/api/content/${contentType}`);
-        if(response.ok) {
+        if (response.ok) {
             const data = await response.json();
             setItems(data);
         }
@@ -38,7 +30,7 @@ function ManageContentClientUI({ initialItems, contentType, contentConfig }: { i
         setItems([newItem, ...items]);
         setEditingItemId('new');
     };
-    
+
     const cancelEdit = () => {
         if (editingItemId === 'new') {
             setItems(items.filter(item => item.id !== 'new'));
@@ -106,11 +98,11 @@ function SubmitButton() {
 
 function EditForm({ item, contentType, onCancel, onSaveSuccess }: { item: any, contentType: string, onCancel: () => void, onSaveSuccess: () => void }) {
     const [state, formAction] = useFormState(manageContent, { error: null });
-    
+
     useEffect(() => {
         if (state.success) {
             onCancel();
-            onSaveSuccess(); // Refetch data on successful save
+            onSaveSuccess();
         }
     }, [state.success, onCancel, onSaveSuccess]);
 
@@ -133,7 +125,7 @@ function EditForm({ item, contentType, onCancel, onSaveSuccess }: { item: any, c
                     <label className="font-medium text-gray-700 text-sm">Location / Type / Department</label>
                     <input name="secondary_field" defaultValue={item.location || item.type || item.department} placeholder="e.g., Hargeisa, Remote, Full-time" className="mt-1 w-full h-10 px-3 rounded-lg bg-white border border-gray-200 focus:ring-2 focus:ring-sky-500" />
                 </div>
-                
+
                 <div className="flex justify-end items-center gap-4 pt-4 border-t">
                     {state.error && <p className="text-red-500 text-sm flex items-center gap-2 mr-auto"><AlertTriangle size={16}/>{state.error}</p>}
                     <button type="button" onClick={onCancel} className="px-4 py-2 text-sm font-semibold text-slate-600 rounded-lg hover:bg-slate-100">Cancel</button>
@@ -144,10 +136,11 @@ function EditForm({ item, contentType, onCancel, onSaveSuccess }: { item: any, c
     );
 }
 
-// =================================================================================
-// SERVER COMPONENT (Default Export)
-// This remains a Server Component for data fetching.
-// =================================================================================
+// ================== SERVER COMPONENT ==================
+import { createServerComponentClient } from '@supabase/auth-helpers-nextjs';
+import { cookies } from 'next/headers';
+import { notFound, redirect } from 'next/navigation';
+
 export default async function ManageContentPage({ params }: { params: { contentType: string } }) {
     const supabase = createServerComponentClient({ cookies });
     const { data: { user } } = await supabase.auth.getUser();
@@ -170,9 +163,7 @@ export default async function ManageContentPage({ params }: { params: { contentT
         .eq('organization_id', user.id)
         .order('created_at', { ascending: false });
 
-    if (error) {
-        console.error("Fetch error:", error);
-    }
+    if (error) console.error("Fetch error:", error);
 
     return (
         <div className="bg-slate-50 min-h-screen p-4 sm:p-8">
