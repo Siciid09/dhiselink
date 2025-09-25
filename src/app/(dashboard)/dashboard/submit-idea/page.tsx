@@ -3,7 +3,7 @@
 import { useFormState, useFormStatus } from 'react-dom';
 import { submitIdea, updateIdea } from './actions';
 import { AlertTriangle, Lightbulb, UploadCloud, Loader2 } from 'lucide-react';
-import React, { useState, useEffect, ChangeEvent, Suspense } from 'react';
+import React, { useState, useEffect, ChangeEvent, Suspense } from 'react'; // Import Suspense
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { v4 as uuidv4 } from 'uuid';
 import { useSearchParams } from 'next/navigation';
@@ -51,7 +51,7 @@ const FileUpload = ({ name, label, defaultValue, onUploadComplete }: { name: str
 };
 
 
-// --- The actual form component ---
+// --- The actual form component that uses the hook ---
 function IdeaForm({ user }: { user: User }) {
     const searchParams = useSearchParams();
     const ideaId = searchParams.get('id');
@@ -98,32 +98,12 @@ function IdeaForm({ user }: { user: User }) {
             <form action={formAction} className="space-y-6">
                 {isEditMode && <input type="hidden" name="id" value={ideaId ?? ''} />}
                 <input type="hidden" name="cover_image_url" value={coverImageUrl} />
-
-                <div>
-                    <label className="font-medium">Idea Title</label>
-                    <input name="title" defaultValue={initialData?.title} required className="w-full mt-1 p-3 border rounded-lg" />
-                </div>
-                <div>
-                    <label className="font-medium">Category / Topic</label>
-                    <select name="category" defaultValue={initialData?.category || "General"} required className="w-full mt-1 p-3 border rounded-lg">
-                        <option>General</option><option>Engineering</option><option>Construction</option><option>Design</option><option>Tech</option><option>Community</option>
-                    </select>
-                </div>
-                <div>
-                    <label className="font-medium">Description / Details</label>
-                    <textarea name="details" defaultValue={initialData?.details} rows={6} required className="w-full mt-1 p-3 border rounded-lg"></textarea>
-                </div>
+                <div><label className="font-medium">Idea Title</label><input name="title" defaultValue={initialData?.title} required className="w-full mt-1 p-3 border rounded-lg" /></div>
+                <div><label className="font-medium">Category / Topic</label><select name="category" defaultValue={initialData?.category || "General"} required className="w-full mt-1 p-3 border rounded-lg"><option>General</option><option>Engineering</option><option>Construction</option><option>Design</option><option>Tech</option><option>Community</option></select></div>
+                <div><label className="font-medium">Description / Details</label><textarea name="details" defaultValue={initialData?.details} rows={6} required className="w-full mt-1 p-3 border rounded-lg"></textarea></div>
                 <FileUpload name="cover_image_upload" label="Cover Image" defaultValue={initialData?.cover_image_url} onUploadComplete={setCoverImageUrl} />
-                <div>
-                    <label className="font-medium">Tags / Keywords</label>
-                    <input name="tags" defaultValue={initialData?.tags?.join(', ')} placeholder="e.g., sustainability, housing, fintech" className="w-full mt-1 p-3 border rounded-lg" />
-                </div>
-                <div>
-                    <label className="font-medium">Visibility</label>
-                    <select name="visibility" defaultValue={initialData?.visibility || "draft"} required className="w-full mt-1 p-3 border rounded-lg">
-                        <option value="draft">Draft (Only you can see)</option><option value="published">Published (Visible to everyone)</option>
-                    </select>
-                </div>
+                <div><label className="font-medium">Tags / Keywords</label><input name="tags" defaultValue={initialData?.tags?.join(', ')} placeholder="e.g., sustainability, housing, fintech" className="w-full mt-1 p-3 border rounded-lg" /></div>
+                <div><label className="font-medium">Visibility</label><select name="visibility" defaultValue={initialData?.visibility || "draft"} required className="w-full mt-1 p-3 border rounded-lg"><option value="draft">Draft (Only you can see)</option><option value="published">Published (Visible to everyone)</option></select></div>
                 <SubmitButton isEditMode={isEditMode} />
                 {state.error && <div className="p-4 bg-red-50 text-red-800 rounded-lg flex items-center gap-3"><AlertTriangle /><p>{state.error}</p></div>}
             </form>
@@ -131,7 +111,8 @@ function IdeaForm({ user }: { user: User }) {
     );
 }
 
-// --- The main page export, which wraps the form in Suspense ---
+// --- THIS IS THE FIX ---
+// The main page export, which wraps the form that uses the hook in a Suspense boundary.
 export default function SubmitIdeaPage({ user }: { user: User }) {
     return (
         <Suspense fallback={<div className="text-center p-20">Loading Form...</div>}>
