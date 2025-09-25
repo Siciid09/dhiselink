@@ -2,13 +2,14 @@
 
 import { useFormState, useFormStatus } from 'react-dom';
 import { submitIdea, updateIdea } from './actions';
-import { AlertTriangle, Lightbulb, UploadCloud } from 'lucide-react';
-import React, { useState, useEffect, ChangeEvent } from 'react';
+import { AlertTriangle, Lightbulb, UploadCloud, Loader2 } from 'lucide-react';
+import React, { useState, useEffect, ChangeEvent, Suspense } from 'react';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { v4 as uuidv4 } from 'uuid';
 import { useSearchParams } from 'next/navigation';
 import { User } from '@supabase/supabase-js';
 
+// --- Reusable Components ---
 function SubmitButton({ isEditMode }: { isEditMode: boolean }) {
     const { pending } = useFormStatus();
     return <button type="submit" disabled={pending} className="w-full py-3 px-6 bg-sky-600 text-white font-bold rounded-lg disabled:bg-slate-400">{pending ? "Saving..." : isEditMode ? "Save Changes" : "Submit Idea"}</button>;
@@ -49,8 +50,9 @@ const FileUpload = ({ name, label, defaultValue, onUploadComplete }: { name: str
     );
 };
 
-// --- Main Form Component ---
-export default function SubmitIdeaPage({ user }: { user: User }) {
+
+// --- The actual form component ---
+function IdeaForm({ user }: { user: User }) {
     const searchParams = useSearchParams();
     const ideaId = searchParams.get('id');
     const isEditMode = !!ideaId;
@@ -81,7 +83,7 @@ export default function SubmitIdeaPage({ user }: { user: User }) {
     if (loading) {
         return (
             <div className="bg-white p-8 rounded-2xl shadow-lg border">
-                <div className="text-center p-20">Loading idea for editing...</div>
+                <div className="text-center p-20"><Loader2 className="animate-spin mx-auto" /> Loading Idea...</div>
             </div>
         );
     }
@@ -126,5 +128,14 @@ export default function SubmitIdeaPage({ user }: { user: User }) {
                 {state.error && <div className="p-4 bg-red-50 text-red-800 rounded-lg flex items-center gap-3"><AlertTriangle /><p>{state.error}</p></div>}
             </form>
         </div>
+    );
+}
+
+// --- The main page export, which wraps the form in Suspense ---
+export default function SubmitIdeaPage({ user }: { user: User }) {
+    return (
+        <Suspense fallback={<div className="text-center p-20">Loading Form...</div>}>
+            <IdeaForm user={user} />
+        </Suspense>
     );
 }
