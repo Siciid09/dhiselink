@@ -1,111 +1,79 @@
-// File Path: app/ideas/submit/page.tsx
-
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useFormState, useFormStatus } from 'react-dom';
+import { submitIdea } from './actions';
+import { AlertTriangle, Lightbulb, UploadCloud } from 'lucide-react';
+import React, { useState, useRef, ChangeEvent } from 'react';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
-import { useRouter } from 'next/navigation';
-import { User } from '@supabase/supabase-js';
+import { v4 as uuidv4 } from 'uuid';
+
+function SubmitButton() {
+    const { pending } = useFormStatus();
+    return <button type="submit" disabled={pending} className="w-full py-3 px-6 bg-sky-600 text-white font-bold rounded-lg disabled:bg-slate-400">{pending ? "Submitting..." : "Submit Idea"}</button>;
+}
+
+const FileUpload = ({ name, label, onUploadComplete }: { name: string, label: string, onUploadComplete: (url: string) => void }) => {
+    const [uploading, setUploading] = useState(false);
+    const [preview, setPreview] = useState<string | null>(null);
+    const supabase = createClientComponentClient();
+    
+    const handleUpload = async (event: ChangeEvent<HTMLInputElement>) => {
+        try {
+            setUploading(true);
+            const file = event.target.files?.[0];
+            if (!file) throw new Error('No file selected.');
+            
+            const fileExt = file.name.split('.').pop();
+            const fileName = `${uuidv4()}.${fileExt}`;
+            const { error } = await supabase.storage.from('ideas').upload(fileName, file);
+            if (error) throw error;
+
+            const { data } = supabase.storage.from('ideas').getPublicUrl(fileName);
+            setPreview(data.publicUrl);
+            onUploadComplete(data.publicUrl);
+        } catch (error: any) { alert(error.message); } 
+        finally { setUploading(false); }
+    };
+
+    return (
+        <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">{label}</label>
+            <div className="mt-1 flex items-center gap-4">
+                {preview ? <img src={preview} alt="Preview" className="w-20 h-20 object-cover rounded-lg" /> : <div className="w-20 h-20 bg-slate-100 rounded-lg flex items-center justify-center"><UploadCloud className="text-slate-400" /></div>}
+                <label htmlFor={name} className="cursor-pointer bg-white py-2 px-4 border border-slate-300 rounded-md text-sm font-semibold text-slate-700 hover:bg-slate-50">{uploading ? 'Uploading...' : 'Choose File'}</label>
+                <input id={name} type="file" onChange={handleUpload} className="hidden" accept="image/*" />
+            </div>
+        </div>
+    );
+};
 
 export default function SubmitIdeaPage() {
-    // Form state
-    const [title, setTitle] = useState('');
-    const [category, setCategory] = useState('');
-    const [summary, setSummary] = useState('');
-    const [details, setDetails] = useState('');
-    const [seeking, setSeeking] = useState('');
-    
-    // Auth and UI state
-    const [user, setUser] = useState<User | null>(null);
-    const [loading, setLoading] = useState(true); // Start in a loading state
-    const [formError, setFormError] = useState('');
-    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [state, formAction] = useFormState(submitIdea, { error: null });
+    const [coverImageUrl, setCoverImageUrl] = useState('');
 
-    const router = useRouter();
-    const supabase = createClientComponentClient();
-
-    // This is the corrected hook that fixes the redirect loop
-    useEffect(() => {
-        const checkSession = async () => {
-            // First, get the current session immediately on page load
-            const { data: { session } } = await supabase.auth.getSession();
-            
-            // If there's no session, it means the user is truly not logged in
-            if (!session) {
-                router.push('/login');
-            } else {
-                // If there IS a session, set the user and stop the loading state
-                setUser(session.user);
-                setLoading(false);
-            }
-        };
-
-        checkSession();
-    }, [router, supabase.auth]);
-
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setFormError('');
-        setIsSubmitting(true);
-
-        const response = await fetch('/api/ideas', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                title,
-                category,
-                summary,
-                details,
-                seeking: seeking.split(',').map(s => s.trim()),
-            }),
-        });
-        
-        const newIdea = await response.json();
-
-        if (response.ok) {
-            router.push(`/ideas/${newIdea.id}`);
-        } else {
-            setFormError(newIdea.error || "An error occurred while submitting.");
-        }
-        setIsSubmitting(false);
-    };
-    
-    // Show a loading message while we verify the user's session
-    if (loading) {
-        return <div className="pt-40 text-center">Verifying authentication...</div>;
-    }
-
-    // If we are not loading and there is a user, show the form
     return (
-        <div className="bg-gray-50 pt-40 pb-24 min-h-screen">
-            <div className="container mx-auto px-6 max-w-2xl">
-                <div className="bg-white p-8 rounded-lg shadow-lg border">
-                    <h1 className="text-3xl font-bold mb-6">Submit a New Idea</h1>
-                    <form onSubmit={handleSubmit} className="space-y-6">
-                        <div>
-                            <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1">Idea Title</label>
-                            <input type="text" id="title" value={title} onChange={e => setTitle(e.target.value)} required className="w-full h-12 px-4 rounded-lg border-gray-300 focus:ring-blue-500 focus:border-blue-500"/>
+        <div className="bg-slate-50 min-h-screen py-24">
+            <div className="container mx-auto max-w-2xl px-4">
+                <div className="bg-white p-8 rounded-2xl shadow-lg border">
+                    <div className="text-center mb-8">
+                        <Lightbulb className="mx-auto h-12 w-12 text-sky-500 bg-sky-100 p-2 rounded-full" />
+                        <h1 className="text-3xl font-bold mt-4">Share Your New Idea</h1>
+                        <p className="text-slate-600 mt-2">Bring your vision to the community.</p>
+                    </div>
+                    <form action={formAction} className="space-y-6">
+                        <input type="hidden" name="cover_image_url" value={coverImageUrl} />
+                        <div><label className="font-medium">Idea Title</label><input name="title" required className="w-full mt-1 p-3 border rounded-lg" /></div>
+                        <div><label className="font-medium">Category / Topic</label>
+                            <select name="category" required className="w-full mt-1 p-3 border rounded-lg"><option value="General">General</option><option value="Engineering">Engineering</option><option value="Construction">Construction</option><option value="Design">Design</option><option value="Tech">Tech</option><option value="Community">Community</option></select>
                         </div>
-                        <div>
-                            <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-1">Category</label>
-                            <input type="text" id="category" value={category} onChange={e => setCategory(e.target.value)} required className="w-full h-12 px-4 rounded-lg border-gray-300 focus:ring-blue-500 focus:border-blue-500"/>
+                        <div><label className="font-medium">Description / Details</label><textarea name="details" rows={6} required className="w-full mt-1 p-3 border rounded-lg"></textarea></div>
+                        <FileUpload name="cover_image_upload" label="Cover Image" onUploadComplete={setCoverImageUrl} />
+                        <div><label className="font-medium">Tags / Keywords</label><input name="tags" placeholder="e.g., sustainability, housing, fintech" className="w-full mt-1 p-3 border rounded-lg" /></div>
+                        <div><label className="font-medium">Visibility</label>
+                            <select name="visibility" defaultValue="draft" required className="w-full mt-1 p-3 border rounded-lg"><option value="draft">Draft (Only you can see)</option><option value="published">Published (Visible to everyone)</option></select>
                         </div>
-                         <div>
-                            <label htmlFor="summary" className="block text-sm font-medium text-gray-700 mb-1">Summary (Short Pitch)</label>
-                            <textarea id="summary" value={summary} onChange={e => setSummary(e.target.value)} required rows={3} className="w-full p-4 rounded-lg border-gray-300 focus:ring-blue-500 focus:border-blue-500"></textarea>
-                        </div>
-                        <div>
-                            <label htmlFor="details" className="block text-sm font-medium text-gray-700 mb-1">Full Details</label>
-                            <textarea id="details" value={details} onChange={e => setDetails(e.target.value)} required rows={6} className="w-full p-4 rounded-lg border-gray-300 focus:ring-blue-500 focus:border-blue-500"></textarea>
-                        </div>
-                        <div>
-                            <label htmlFor="seeking" className="block text-sm font-medium text-gray-700 mb-1">Seeking (Collaborators, Funding, etc.)</label>
-                            <input type="text" id="seeking" value={seeking} onChange={e => setSeeking(e.target.value)} placeholder="Separate with commas, e.g., Developer, Funding" required className="w-full h-12 px-4 rounded-lg border-gray-300 focus:ring-blue-500 focus:border-blue-500"/>
-                        </div>
-                        <button type="submit" disabled={isSubmitting} className="w-full bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-700 disabled:bg-blue-400">
-                            {isSubmitting ? 'Submitting...' : 'Submit Idea'}
-                        </button>
-                        {formError && <p className="text-red-500 text-center mt-4">{formError}</p>}
+                        <SubmitButton />
+                        {state.error && <div className="p-4 bg-red-50 text-red-800 rounded-lg flex items-center gap-3"><AlertTriangle /><p>{state.error}</p></div>}
                     </form>
                 </div>
             </div>

@@ -18,20 +18,28 @@ export async function completeOrganizationOnboarding(prevState: ActionState, for
   }
 
   const dataToUpdate = {
+    // Tab 1
     organization_name: formData.get("organization_name") as string,
     location: formData.get("location") as string,
-    year_founded: formData.get("year_founded") as string,
+    year_founded: Number(formData.get("year_founded")),
+    // Tab 2
     organization_subtype: formData.get("organization_subtype") as string,
     bio: formData.get("bio") as string,
     employee_count: formData.get("employee_count") as string,
-    website_url: formData.get("website_url") as string,
-    email: formData.get("email") as string,
+    // Tab 3 (Dynamic)
+    industry: formData.get("industry") as string | null,
+    accreditation: formData.get("accreditation") as string | null,
+    community_focus: formData.get("community_focus") as string | null,
+    services: formData.get("services") as string,
+    // Other
     organization_type: formData.get("organization_type") as string,
     onboarding_complete: true
   };
 
-  if (!dataToUpdate.organization_name || !dataToUpdate.location || !dataToUpdate.bio) {
-    return { error: "Name, Location, and Bio are required fields." };
+  // Basic validation
+  const requiredFields = [dataToUpdate.organization_name, dataToUpdate.location, dataToUpdate.year_founded, dataToUpdate.organization_subtype, dataToUpdate.bio, dataToUpdate.employee_count];
+  if (requiredFields.some(f => !f)) {
+    return { error: "Please ensure all required fields are filled out." };
   }
   
   const { error } = await supabase
@@ -44,6 +52,6 @@ export async function completeOrganizationOnboarding(prevState: ActionState, for
   }
   
   revalidatePath("/dashboard");
-  revalidatePath("/organizations"); // Also revalidate the listing page
+  revalidatePath("/organizations");
   redirect("/dashboard");
 }

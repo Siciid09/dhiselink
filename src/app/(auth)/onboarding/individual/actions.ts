@@ -14,24 +14,38 @@ export async function completeIndividualOnboarding(prevState: ActionState, formD
   const { data: { user } } = await supabase.auth.getUser();
 
   if (!user) {
-    return { error: "You must be logged in to complete onboarding." };
+    return { error: "You must be logged in." };
   }
 
-  // Collect all the new, detailed data from the form
+  // NOTE: File uploads (like resume_url) must be handled separately on the client
+  // before this action is called. This action saves the final URL.
+
+  const skills = formData.get("skills") as string;
+
   const dataToUpdate = {
+    // Tab 1
     full_name: formData.get("full_name") as string,
     professional_title: formData.get("professional_title") as string,
     location: formData.get("location") as string,
+    experience_level: formData.get("experience_level") as string,
+    // Tab 2
     bio: formData.get("bio") as string,
-    skills: formData.getAll("skills") as string[], // .getAll() is used for multiple fields with the same name
-    website_url: formData.get("website_url") as string,
-    linkedin_url: formData.get("linkedin_url") as string,
-    github_url: formData.get("github_url") as string,
-    onboarding_complete: true // Mark onboarding as complete
+    industry: formData.get("industry") as string,
+    years_of_experience: Number(formData.get("years_of_experience")),
+    skills: skills ? skills.split(',').map(s => s.trim()) : [],
+    // Tab 3
+    degree: formData.get("degree") as string,
+    field_of_study: formData.get("field_of_study") as string,
+    certifications: (formData.get("certifications") as string)?.split(',').map(c => c.trim()),
+    // We assume resume_url is handled on the client and the URL is passed
+    // resume_url: formData.get("resume_url") as string, 
+    onboarding_complete: true
   };
 
-  if (!dataToUpdate.full_name || !dataToUpdate.professional_title) {
-    return { error: "Full Name and Professional Title are required." };
+  // Basic validation for required fields
+  const requiredFields = [dataToUpdate.full_name, dataToUpdate.professional_title, dataToUpdate.location, dataToUpdate.experience_level, dataToUpdate.bio, dataToUpdate.industry, dataToUpdate.years_of_experience, dataToUpdate.degree];
+  if (requiredFields.some(f => !f)) {
+    return { error: "Please ensure all required fields are filled out." };
   }
 
   const { error } = await supabase
@@ -40,7 +54,6 @@ export async function completeIndividualOnboarding(prevState: ActionState, formD
     .eq("id", user.id);
 
   if (error) {
-    console.error("Profile Update Error:", error);
     return { error: `Database Error: ${error.message}` };
   }
   

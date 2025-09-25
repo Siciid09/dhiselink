@@ -3,41 +3,69 @@ import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { Suspense } from 'react';
-import { Briefcase, BookOpen, Handshake, Shield, Lightbulb, Users, Eye, PlusCircle, Building, Landmark, Heart } from 'lucide-react';
+import { Briefcase, BookOpen, Handshake, Shield, Lightbulb, Users, PlusCircle, Building, Landmark, Heart } from 'lucide-react';
 
-// This is the "master switch" that correctly defines the options for the Chooser Menu.
 export const roleConfig: Record<string, any> = {
     individual: {
-        listTitle: "My Recent Ideas", actions: [ { name: "Manage My Ideas", href: "/dashboard/manage", icon: Lightbulb }, { name: "Profile Settings", href: "/dashboard/settings", icon: Users } ],
-        creatableContentTypes: [ { type: 'idea', title: 'Idea', description: 'Submit an idea for a project or venture.', icon: 'Lightbulb' } ]
+        listTitle: "My Recent Ideas",
+        actions: [
+            { name: "Manage My Ideas", href: "/dashboard/manage", iconName: 'Lightbulb' },
+            { name: "Profile Settings", href: "/dashboard/settings", iconName: 'Users' }
+        ],
+        creatableContentTypes: [
+            { title: 'Idea', description: 'Submit an idea for a project.', iconName: 'Lightbulb' }
+        ]
     },
     company: {
-        listTitle: "My Recent Postings", actions: [ { name: "Manage All Content", href: "/dashboard/manage", icon: Briefcase }, { name: "Company Settings", href: "/dashboard/settings", icon: Building } ],
-        creatableContentTypes: [ { type: 'job', title: 'Job', description: 'Post a full-time or part-time role.', icon: 'Briefcase' }, { type: 'service', title: 'Service', description: 'Offer a professional service to clients.', icon: 'Handshake' } ]
+        listTitle: "My Recent Postings",
+        actions: [
+            { name: "Manage All Content", href: "/dashboard/manage", iconName: 'Briefcase' },
+            { name: "Company Settings", href: "/dashboard/settings", iconName: 'Building' }
+        ],
+        creatableContentTypes: [
+            { title: 'Job', description: 'Post a role.', iconName: 'Briefcase' },
+            { title: 'Service', description: 'Offer a professional service.', iconName: 'Handshake' }
+        ]
     },
     university: {
-        listTitle: "Recent University Content", actions: [ { name: "Manage All Content", href: "/dashboard/manage", icon: BookOpen }, { name: "University Settings", href: "/dashboard/settings", icon: Landmark } ],
-        creatableContentTypes: [ { type: 'job', title: 'Job', description: 'Post an employment opportunity.', icon: 'Briefcase' }, { type: 'program', title: 'Program', description: 'Add a university course or training.', icon: 'BookOpen' } ]
+        listTitle: "Recent Content",
+        actions: [
+            { name: "Manage All Content", href: "/dashboard/manage", iconName: 'BookOpen' },
+            { name: "University Settings", href: "/dashboard/settings", iconName: 'Landmark' }
+        ],
+        creatableContentTypes: [
+            { title: 'Job', description: 'Post an employment opportunity.', iconName: 'Briefcase' },
+            { title: 'Program', description: 'Add a university program.', iconName: 'BookOpen' }
+        ]
     },
     ngo_gov: {
-        listTitle: "Recent Initiatives", actions: [ { name: "Manage All Content", href: "/dashboard/manage", icon: Heart }, { name: "Organization Settings", href: "/dashboard/settings", icon: Building } ],
+        listTitle: "Recent Initiatives",
+        actions: [
+            { name: "Manage All Content", href: "/dashboard/manage", iconName: 'Heart' },
+            { name: "Organization Settings", href: "/dashboard/settings", iconName: 'Building' }
+        ],
         creatableContentTypes: [
-            { type: 'job', title: 'Job', description: 'Post a role for your organization.', icon: 'Briefcase' },
-            { type: 'initiative', title: 'Initiative', description: 'Post a Project, Event, Tender, etc.', icon: 'Shield' }
+            { title: 'Job', description: 'Post a role for your organization.', iconName: 'Briefcase' },
+            { title: 'Initiative', description: 'Post a Project, Event, etc.', iconName: 'Shield' }
         ]
     },
     other: {
-        listTitle: "Recent Postings", actions: [ { name: "Manage All Content", href: "/dashboard/manage", icon: Briefcase }, { name: "Organization Settings", href: "/dashboard/settings", icon: Building } ],
+        listTitle: "Recent Postings",
+        actions: [
+            { name: "Manage All Content", href: "/dashboard/manage", iconName: 'Briefcase' },
+            { name: "Organization Settings", href: "/dashboard/settings", iconName: 'Building' }
+        ],
         creatableContentTypes: [
-            { type: 'job', title: 'Job', description: 'Post a role for your organization.', icon: 'Briefcase' },
-            { type: 'initiative', title: 'Initiative', description: 'Post a Project, Event, Tender, etc.', icon: 'Shield' }
+            { title: 'Job', description: 'Post a role for your organization.', iconName: 'Briefcase' },
+            { title: 'Initiative', description: 'Post a Project, Event, etc.', iconName: 'Shield' }
         ]
     }
 };
 
-// --- The rest of your dashboard component (no changes needed) ---
-const summaryTypeConfig: Record<string, { className: string }> = { job: { className: 'bg-sky-100 text-sky-800' }, program: { className: 'bg-purple-100 text-purple-800' }, service: { className: 'bg-emerald-100 text-emerald-800' }, project: { className: 'bg-slate-100 text-slate-800' }, idea: { className: 'bg-amber-100 text-amber-800'}, default: { className: 'bg-gray-100 text-gray-800' }};
+const iconMap: Record<string, React.ElementType> = { Briefcase, BookOpen, Handshake, Shield, Lightbulb, Users, Building, Landmark, Heart };
+
 function DashboardSkeleton() { return <div className="animate-pulse bg-slate-50 min-h-screen p-8">Loading Dashboard...</div> }
+
 async function DashboardContent() {
     const supabase = createServerComponentClient({ cookies });
     const { data: { user } } = await supabase.auth.getUser();
@@ -45,14 +73,24 @@ async function DashboardContent() {
     const { data: profile } = await supabase.from('profiles').select('*').eq('id', user.id).single();
     if (!profile) redirect('/select-role');
     const config = roleConfig[profile.role] || roleConfig.company;
-    const { data: jobs } = await supabase.from('jobs').select('id, title, created_at').eq('organization_id', user.id).limit(5);
-    const mainListItems = (jobs || []).map(item => ({ ...item, type: 'job' }));
+    
+    let mainListItems: any[] = [];
+    if(profile.role === 'individual') {
+        const { data: ideas } = await supabase.from('ideas').select('id, title, created_at').eq('author_id', user.id).limit(5);
+        mainListItems = (ideas || []).map(item => ({...item, type: 'idea' }));
+    } else {
+        const { data: jobs } = await supabase.from('jobs').select('id, title, created_at').eq('organization_id', user.id).limit(5);
+        mainListItems = (jobs || []).map(item => ({...item, type: 'job' }));
+    }
+
     return (
        <div className="bg-slate-50 min-h-screen p-4 sm:p-6 lg:p-8">
             <div className="max-w-7xl mx-auto">
                 <div className="flex flex-col sm:flex-row justify-between items-start mb-10">
                     <div><h1 className="text-4xl font-extrabold text-slate-900 tracking-tight">Dashboard</h1><p className="text-slate-600 mt-2 text-lg">Welcome back, {profile.organization_name || profile.full_name}!</p></div>
-                    <div className="flex items-center gap-4 mt-4 sm:mt-0"><Link href="/dashboard/create" className="bg-sky-600 text-white font-semibold py-3 px-5 rounded-lg flex items-center gap-2 shadow-lg shadow-sky-500/30 hover:bg-sky-700"><PlusCircle size={20} />Create New...</Link></div>
+                    <div className="flex items-center gap-4 mt-4 sm:mt-0">
+                        <Link href="/dashboard/create" className="bg-sky-600 text-white font-semibold py-3 px-5 rounded-lg flex items-center gap-2 shadow-lg shadow-sky-500/30 hover:bg-sky-700"><PlusCircle size={20} />Create New...</Link>
+                    </div>
                 </div>
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     <div className="lg:col-span-2 bg-white p-6 rounded-2xl shadow-sm border">
@@ -61,12 +99,22 @@ async function DashboardContent() {
                     </div>
                     <div className="lg:col-span-1 bg-white p-6 rounded-2xl shadow-sm border">
                         <h3 className="text-xl font-bold text-slate-800 mb-5">Quick Actions</h3>
-                        <ul className="space-y-3">{config.actions.map((action: any) => (<li key={action.name}><Link href={action.href} className="group flex items-center gap-4 p-4 rounded-xl bg-slate-100 hover:bg-sky-500 hover:text-white transition-all"><action.icon className="text-slate-600 group-hover:text-white" />
-                        <span className="font-semibold text-slate-800 group-hover:text-white">{action.name}</span></Link></li>))}</ul>
+                        <ul className="space-y-3">{config.actions.map((action: any) => {
+                            const Icon = iconMap[action.iconName];
+                            return (
+                                <li key={action.name}>
+                                    <Link href={action.href} className="group flex items-center gap-4 p-4 rounded-xl bg-slate-100 hover:bg-sky-500 hover:text-white transition-all">
+                                        <Icon className="text-slate-600 group-hover:text-white" />
+                                        <span className="font-semibold text-slate-800 group-hover:text-white">{action.name}</span>
+                                    </Link>
+                                </li>
+                            )
+                        })}</ul>
                     </div>
                 </div>
             </div>
        </div>
     );
 }
+
 export default function DashboardPage() { return (<Suspense fallback={<DashboardSkeleton />}><DashboardContent /></Suspense>); }

@@ -13,7 +13,6 @@ type TypeConfigEntry = {
     className: string;
 };
 
-// --- UPDATED: Added 'idea' to the config for proper display ---
 const typeConfig: Record<string, TypeConfigEntry> = {
     job: { name: 'Job', icon: Briefcase, className: 'bg-sky-100 text-sky-800 border border-sky-200' },
     program: { name: 'Program', icon: BookOpen, className: 'bg-purple-100 text-purple-800 border border-purple-200' },
@@ -33,6 +32,8 @@ type Opportunity = {
     status: string | null;
     created_at: string;
     type: string;
+    // This property is added by the server component for ideas
+    editHref?: string; 
 };
 
 export default function ManagementClientUI({ initialItems }: { initialItems: Opportunity[] }) {
@@ -83,14 +84,21 @@ export default function ManagementClientUI({ initialItems }: { initialItems: Opp
                                 {filteredItems.map(op => {
                                     const config = typeConfig[op.type] || typeConfig.default;
                                     const Icon = config.icon;
+
+                                    // --- THIS IS THE FIX ---
+                                    // We check if the item is an 'idea' and set the correct view link.
+                                    // Otherwise, we use the default link for all other types.
+                                    const viewHref = op.type === 'idea' ? `/ideas/${op.id}` : `/opportunities/${op.id}`;
+                                    const editHref = op.editHref || `/dashboard/create?type=${op.type}&id=${op.id}`;
+
                                     return (
                                         <tr key={`${op.type}-${op.id}`} className="border-b border-slate-100 hover:bg-slate-50/50">
                                             <td className="p-4 font-bold text-slate-800">{op.title}</td>
                                             <td className="p-4"><span className={`inline-flex items-center gap-2 text-xs font-bold capitalize px-3 py-1 rounded-full ${config.className}`}>{Icon && <Icon size={14} />} {config.name}</span></td>
                                             <td className="p-4 text-slate-500">{new Date(op.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</td>
                                             <td className="p-4 flex justify-end items-center gap-1">
-                                                <Link href={`/opportunities/${op.id}`} title="View Public Page" className="p-2 text-slate-500 hover:bg-slate-200 rounded-md transition-colors"><Eye size={16} /></Link>
-                                                <Link href={`/dashboard/create?type=${op.type}&id=${op.id}`} title="Edit" className="p-2 text-slate-500 hover:bg-slate-200 rounded-md transition-colors"><Edit size={16} /></Link>
+                                                <Link href={viewHref} title="View Public Page" className="p-2 text-slate-500 hover:bg-slate-200 rounded-md transition-colors"><Eye size={16} /></Link>
+                                                <Link href={editHref} title="Edit" className="p-2 text-slate-500 hover:bg-slate-200 rounded-md transition-colors"><Edit size={16} /></Link>
                                                 <DeleteButton item={{ id: op.id, type: op.type }} />
                                             </td>
                                         </tr>

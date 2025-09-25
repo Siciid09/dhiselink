@@ -2,8 +2,8 @@ import { createServerComponentClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
-// Updated: Added new icons
-import { ArrowLeft, MapPin, Globe, Mail, Briefcase, Users, Landmark, Building2 } from 'lucide-react';
+// Updated: Added the Phone icon
+import { ArrowLeft, MapPin, Globe, Mail, Briefcase, Users, Landmark, Building2, Phone } from 'lucide-react';
 import OrganizationTabs from './OrganizationTabs';
 
 export const dynamic = 'force-dynamic';
@@ -41,7 +41,6 @@ export default async function OrganizationDetailPage({ params }: { params: { id:
     
     const displayName = profile.organization_name || profile.name || "Organization";
 
-    // Added: Logic to determine the display strings for Type and Sub-type
     let displayType: string = 'Organization';
     if (profile.organization_type === 'Government') {
         displayType = 'Government';
@@ -62,7 +61,6 @@ export default async function OrganizationDetailPage({ params }: { params: { id:
                             <h1 className="text-3xl md:text-4xl font-extrabold text-slate-900">{displayName}</h1>
                             {profile.tagline && <p className="text-lg text-slate-500 mt-1">{profile.tagline}</p>}
                             <div className="flex flex-wrap items-center gap-x-6 gap-y-3 mt-4 text-sm text-slate-600">
-                                {/* Updated: Added the new Type and Sub-type display */}
                                 {displayType && <span className="flex items-center gap-1.5 font-medium"><Landmark size={14}/> {displayType}</span>}
                                 {displaySubtype && <span className="flex items-center gap-1.5"><Building2 size={14}/> {displaySubtype}</span>}
                                 {profile.location && <span className="flex items-center gap-1.5"><MapPin size={14}/>{profile.location}</span>}
@@ -72,6 +70,8 @@ export default async function OrganizationDetailPage({ params }: { params: { id:
                             <div className="flex flex-wrap items-center gap-x-6 gap-y-2 mt-6">
                                 {profile.website_url && <a href={profile.website_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm font-semibold text-sky-600 hover:text-sky-700"><Globe size={16}/>Website</a>}
                                 {profile.email && <a href={`mailto:${profile.email}`} className="flex items-center gap-2 text-sm font-semibold text-sky-600 hover:text-sky-700"><Mail size={16}/>Email</a>}
+                                {/* Updated: Added the Phone Number display */}
+                                {profile.phone && <a href={`tel:${profile.phone}`} className="flex items-center gap-2 text-sm font-semibold text-sky-600 hover:text-sky-700"><Phone size={16}/>Call</a>}
                             </div>
                         </div>
                     </div>

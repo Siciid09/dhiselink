@@ -1,101 +1,68 @@
 import { createServerComponentClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
 import { notFound } from 'next/navigation';
-import { ArrowLeft, User, Calendar, Tag, MessageCircle } from 'lucide-react';
+import { ArrowLeft, User, Calendar, Tag, Lightbulb, Share2, MessageCircle } from 'lucide-react';
 import Link from 'next/link';
 
-// --- Type Definitions for TypeScript Safety ---
-type Idea = {
-  id: string;
-  created_at: string;
-  title: string;
-  summary: string;
-  details: string | null;
-  tags: string[] | null;
-  author_name: string;
-  // Add any other fields from your 'ideas' table here
-};
-
-// This is the correct, secure way to fetch data in a Server Component
-async function getIdeaById(id: string): Promise<Idea | null> {
-    const supabase = createServerComponentClient({ cookies });
-
-    const { data: idea, error } = await supabase
-        .from('ideas')
-        .select(`
-            *,
-            profiles ( full_name )
-        `)
-        .eq('id', id)
-        .single();
-
-    if (error) {
-        console.error("Supabase fetch error:", error.message);
-        return null;
-    }
-    
-    // Type assertion to help TypeScript understand the nested profile
-    const author_name = (idea.profiles as { full_name: string })?.full_name || "A Member";
-    
-    // Return the idea with the extracted author name
-    return { ...idea, author_name };
-}
-
+const InfoPill = ({ icon: Icon, text }: { icon: React.ElementType, text: string }) => (
+    <div className="flex items-center gap-2 bg-slate-100 px-3 py-2 rounded-lg text-sm text-slate-700">
+        <Icon size={16} className="text-slate-500" />
+        <span className="font-medium">{text}</span>
+    </div>
+);
 
 export default async function IdeaDetailsPage({ params }: { params: { id: string } }) {
-    const idea = await getIdeaById(params.id);
+    const supabase = createServerComponentClient({ cookies });
+    const { data: idea } = await supabase
+        .from('ideas')
+        .select(`*, profiles (full_name, avatar_url)`)
+        .eq('id', params.id)
+        .single();
 
-    // If no idea is found, render the notFound() page from Next.js
-    if (!idea) {
-        notFound();
-    }
+    if (!idea) notFound();
     
     return (
-        <div className="bg-slate-50 min-h-screen pt-24 md:pt-32">
-            <div className="container mx-auto px-4 sm:px-6 lg:px-8 pb-24">
-                <div className="max-w-4xl mx-auto">
-                    <Link href="/ideas" className="inline-flex items-center gap-2 text-slate-600 hover:text-blue-600 transition-colors mb-8">
-                        <ArrowLeft size={20} />
-                        <span>Back to all ideas</span>
-                    </Link>
-                    <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-8 md:p-12">
-                        <h1 className="text-3xl md:text-5xl font-extrabold tracking-tight text-slate-900 mb-6">
-                            {idea.title}
-                        </h1>
-                        <div className="flex flex-wrap items-center gap-x-6 gap-y-3 text-slate-500 border-y border-slate-200 py-4 mb-8">
-                            <div className="flex items-center gap-2">
-                                <User size={16} />
-                                <span className="font-medium">{idea.author_name}</span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                                <Calendar size={16} />
-                                <span>{new Date(idea.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
-                            </div>
-                        </div>
-                        {idea.tags && idea.tags.length > 0 && (
-                            <div className="flex flex-wrap items-center gap-2 mb-8">
-                                <Tag size={16} className="text-gray-500" />
-                                {/* TypeScript now knows 'tag' is a string, fixing the build error */}
-                                {idea.tags.map((tag: string) => (
-                                    <span key={tag} className="bg-blue-100 text-blue-800 text-xs font-semibold px-3 py-1 rounded-full">
-                                        {tag}
-                                    </span>
-                                ))}
-                            </div>
-                        )}
+        <div className="bg-slate-50 min-h-screen">
+            <div className="container mx-auto px-4 py-24 max-w-5xl">
+                <Link href="/ideas" className="inline-flex items-center gap-2 text-slate-600 hover:text-sky-600 mb-8"><ArrowLeft size={20} />Back to all ideas</Link>
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    {/* Main Content */}
+                    <div className="lg:col-span-2 bg-white rounded-2xl shadow-lg border p-8">
+                        {idea.cover_image_url && <img src={idea.cover_image_url} alt={idea.title} className="w-full h-64 object-cover rounded-xl mb-8" />}
+                        <h1 className="text-3xl md:text-4xl font-extrabold text-slate-900 mb-6">{idea.title}</h1>
                         <div className="prose prose-lg max-w-none text-slate-600">
-                           <p>{idea.summary}</p>
-                           <div dangerouslySetInnerHTML={{ __html: idea.details?.replace(/\n/g, '<br />') || '' }} />
+                            <div dangerouslySetInnerHTML={{ __html: idea.details?.replace(/\n/g, '<br />') || '' }} />
                         </div>
-                        <div className="mt-12 pt-8 border-t border-slate-200 text-center">
-                            <h3 className="text-2xl font-bold text-slate-800 mb-4">Interested in Collaborating?</h3>
-                            <p className="text-slate-600 max-w-xl mx-auto mb-6">
-                                If you have the skills and passion to bring this idea to life, reach out to the author or join the discussion.
-                            </p>
-                            <button className="px-8 py-4 bg-gradient-to-r from-blue-600 to-violet-600 text-white font-bold rounded-xl shadow-lg hover:scale-105 hover:shadow-xl transition-all duration-300 flex items-center gap-3 mx-auto">
-                                <MessageCircle size={20} />
-                                Contact the Author
-                            </button>
+                    </div>
+
+                    {/* Sidebar */}
+                    <div className="lg:col-span-1 space-y-6">
+                        <div className="bg-white rounded-2xl shadow-lg border p-6">
+                            <h3 className="font-bold text-lg mb-4">Submitted By</h3>
+                            <Link href={`/professionals/${idea.author_id}`} className="flex items-center gap-3 group">
+                                <img src={idea.profiles?.avatar_url || ''} alt={idea.profiles?.full_name} className="w-12 h-12 rounded-full" />
+                                <div>
+                                    <p className="font-semibold text-slate-800 group-hover:text-sky-600">{idea.profiles?.full_name}</p>
+                                    <p className="text-xs text-slate-500">View Profile</p>
+                                </div>
+                            </Link>
+                        </div>
+                        <div className="bg-white rounded-2xl shadow-lg border p-6 space-y-3">
+                            <InfoPill icon={Calendar} text={new Date(idea.created_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric' })} />
+                            <InfoPill icon={Tag} text={idea.category} />
+                            <InfoPill icon={Lightbulb} text={idea.status} />
+                        </div>
+                         <div className="bg-white rounded-2xl shadow-lg border p-6">
+                            <h3 className="font-bold text-lg mb-4">Tags</h3>
+                            <div className="flex flex-wrap gap-2">
+                                {idea.tags?.map((tag: string) => <span key={tag} className="bg-slate-100 text-xs font-semibold px-3 py-1 rounded-full">{tag}</span>)}
+                            </div>
+                        </div>
+                        <div className="bg-white rounded-2xl shadow-lg border p-6 text-center">
+                            <h3 className="font-bold text-lg mb-2">Interested?</h3>
+                            <p className="text-sm text-slate-500 mb-4">Contact the author or share this idea.</p>
+                             <button className="w-full mb-2 flex items-center justify-center gap-2 py-2.5 bg-sky-600 text-white font-semibold rounded-lg"><MessageCircle size={18} /> Contact Author</button>
+                             <button className="w-full flex items-center justify-center gap-2 py-2.5 bg-slate-200 text-slate-800 font-semibold rounded-lg"><Share2 size={18} /> Share</button>
                         </div>
                     </div>
                 </div>
