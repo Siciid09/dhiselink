@@ -1,43 +1,55 @@
-// File: app/api/organizations/[id]/route.ts
-
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET(request: Request, { params }: { params: { id: string } }) {
+export async function GET(request: Request) {
   const supabase = createRouteHandlerClient({ cookies });
-  const { id } = params;
-
-  if (!id) {
-    return NextResponse.json({ error: 'An ID is required.' }, { status: 400 });
-  }
+  const { searchParams } = new URL(request.url);
+  const type = searchParams.get('type');
+  const tags = searchParams.get('tags')?.split(',');
+  const searchQuery = searchParams.get('search');
 
   try {
-    const { data: profile, error } = await supabase
+    // --- UPDATED: Added 'slug' to the select statement ---
+    let query = supabase
       .from('profiles')
-      // This selects every possible field for any organization type
-      .select(`
-        *, 
-        organization_name, industry, tagline, cover_image_url, 
-        contact_email, phone_number, social_linkedin, social_twitter,
-        mission_vision, employee_count, key_services,
-        accreditation, programs, faculties,
-        community_focus, members_count, public_services
-      `)
-      .eq('id', id)
-      .single();
+      .select('id, slug, organization_name, logo_url, location, bio, organization_type, tags')
+      .in('role', ['organization', 'company', 'university', 'ngo']);
 
-    if (error) {
-        // This will happen if the profile ID doesn't exist
-        console.error('Supabase fetch error:', error.message);
-        throw new Error('Profile not found.');
+    if (type && type !== 'All') {
+      query = query.eq('organization_type', type);
     }
-    
-    return NextResponse.json(profile);
+    if (tags && tags.length > 0) {
+      query = query.contains('tags', tags);
+    }
+    if (searchQuery) {
+        query = query.ilike('organization_name', `%${searchQuery}%`);
+    }
+
+    const { data: organizations, error } = await query.order('created_at', { ascending: false });
+    if (error) throw error;
+
+    // --- UPDATED: Added 'slug' to the select statement for featured orgs ---
+    const { data: featured, error: featuredError } = await supabase
+      .from('profiles')
+      .select('id, slug, organization_name, logo_url, location, bio, organization_type, tags')
+      .in('role', ['organization', 'company', 'university', 'ngo'])
+      .eq('featured', true)
+      .limit(4);
+    if (featuredError) throw featuredError;
+
+    const { data: uniqueTags, error: tagsError } = await supabase.rpc('get_unique_organization_tags');
+    if (tagsError) throw tagsError;
+
+    return NextResponse.json({ 
+        organizations: organizations || [],
+        featured: featured || [],
+        tags: uniqueTags || [],
+    });
 
   } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 404 });
+    return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }

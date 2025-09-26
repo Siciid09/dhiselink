@@ -1,207 +1,258 @@
 "use client";
 
-import React, { useEffect, useRef } from 'react';
-import { motion, useAnimation, useScroll, useTransform } from 'framer-motion';
-import { useInView } from 'react-intersection-observer';
-import { Briefcase, Users, Link, Check, TrendingUp } from 'lucide-react';
+import React, { useRef } from "react";
+import { motion, useScroll, useTransform } from "framer-motion";
+import { ArrowRight, Feather, Layers, Shield, Globe, Users } from "lucide-react";
 
-// --- ANIMATION & LAYOUT UTILITIES ---
-const sectionVariants = {
-    hidden: { opacity: 0 },
-    visible: { opacity: 1, transition: { duration: 1, ease: [0.22, 1, 0.36, 1], staggerChildren: 0.3 } }
-};
-const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0, transition: { duration: 1, ease: [0.22, 1, 0.36, 1] } }
-};
-const AnimatedSection = ({ children, className = '' }: { children: React.ReactNode, className?: string }) => {
-    const controls = useAnimation();
-    const [ref, inView] = useInView({ threshold: 0.2, triggerOnce: true });
-    useEffect(() => { if (inView) { controls.start('visible'); } }, [controls, inView]);
-    return <motion.div ref={ref} animate={controls} initial="hidden" variants={sectionVariants} className={className}>{children}</motion.div>;
-};
+// Utility
+const cn = (...classes: string[]) => classes.filter(Boolean).join(" ");
 
-// --- CORE VISUAL COMPONENTS ---
-const AnimatedWord = ({ text }: { text: string }) => {
-    const words = text.split(" ");
-    return (
-        <span style={{ display: 'inline-block', overflow: 'hidden' }}>
-            {words.map((word, i) => (
-                <motion.span
-                    key={i}
-                    initial={{ y: "100%" }}
-                    animate={{ y: 0 }}
-                    transition={{ duration: 1, ease: [0.22, 1, 0.36, 1], delay: 0.2 + i * 0.1 }}
-                    className="inline-block"
-                    style={{ marginRight: '0.25em' }}
-                >
-                    {word}
-                </motion.span>
-            ))}
-        </span>
-    );
-};
-
-const HorizontalLine = () => (
+// --- Animated Background ---
+const AnimatedHeroBackground = () => (
+  <div className="absolute inset-0 z-0 overflow-hidden bg-[#FDFBF9]">
     <motion.div
-        className="h-[1px] w-full bg-gradient-to-r from-transparent via-slate-300 to-transparent"
-        initial={{ scaleX: 0 }}
-        whileInView={{ scaleX: 1 }}
-        viewport={{ once: true, amount: 0.5 }}
-        transition={{ duration: 1, ease: 'easeOut' }}
+      className="absolute top-[5%] left-[10%] w-[500px] h-[500px] bg-amber-100/50 rounded-full"
+      animate={{ scale: [1, 1.3, 1], rotate: [0, 90, 0] }}
+      transition={{ duration: 40, ease: "easeInOut", repeat: Infinity }}
+      style={{ filter: "blur(120px)" }}
     />
+    <motion.div
+      className="absolute bottom-[10%] right-[5%] w-[400px] h-[400px] bg-amber-100/60 rounded-full"
+      animate={{ scale: [1, 1.2, 1], rotate: [0, -90, 0] }}
+      transition={{
+        duration: 50,
+        ease: "easeInOut",
+        repeat: Infinity,
+        delay: -10,
+      }}
+      style={{ filter: "blur(120px)" }}
+    />
+  </div>
 );
 
+// --- Pillar Card ---
+type PillarCardProps = {
+  icon: React.ComponentType<{ className?: string; size?: string | number }>;
+  title: string;
+  description: string;
+  delay?: number;
+};
 
-// --- 1. THE OVERTURE: A POWERFUL HOOK ---
-const OvertureSection = () => (
-    <div className="relative min-h-screen flex flex-col justify-center items-center text-center">
-        <h1 className="text-6xl md:text-9xl font-bold tracking-tighter text-slate-900 leading-none">
-            <AnimatedWord text="Potential. Progress." />
-        </h1>
-        <h2 className="text-4xl md:text-7xl font-bold tracking-tight text-slate-500 mt-4">
-             <AnimatedWord text="And the space between." />
-        </h2>
+const PillarCard = ({ icon: Icon, title, description, delay }: PillarCardProps) => (
+  <motion.div
+    initial={{ opacity: 0, y: 50 }}
+    whileInView={{ opacity: 1, y: 0 }}
+    viewport={{ once: true, amount: 0.5 }}
+    transition={{ duration: 0.8, delay, ease: [0.22, 1, 0.36, 1] }}
+    className="p-10 rounded-3xl bg-white/60 backdrop-blur-md shadow-md hover:shadow-2xl transition-all duration-500 group"
+  >
+    <div className="flex items-center gap-5">
+      <div className="bg-amber-100/90 p-4 rounded-xl group-hover:scale-110 transition-transform">
+        <Icon className="text-amber-600" size={32} />
+      </div>
+      <h3 className="text-2xl font-bold text-gray-800">{title}</h3>
     </div>
+    <p className="mt-6 text-lg text-gray-600 leading-relaxed">{description}</p>
+  </motion.div>
 );
 
-
-// --- 2. THE THESIS: ANCHORED MANIFESTO ---
-const ThesisSection = () => {
-    const targetRef = useRef<HTMLDivElement | null>(null);
-    const { scrollYProgress } = useScroll({
-        target: targetRef,
-        offset: ["start end", "end start"]
-    });
-
-    const opacity = useTransform(scrollYProgress, [0, 0.1, 0.8, 1], [0, 1, 1, 0]);
-    const scale = useTransform(scrollYProgress, [0, 0.1], [0.9, 1]);
-    const stickyOpacity = useTransform(scrollYProgress, [0.15, 0.2, 0.7, 0.75], [0, 1, 1, 0]);
-
-    return (
-        <div ref={targetRef} className="relative h-[300vh]">
-            <div className="sticky top-0 h-screen flex items-center justify-center overflow-hidden">
-                <motion.div style={{ opacity, scale }} className="absolute inset-0 bg-white" />
-                <div className="relative container mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-16">
-                    <motion.div style={{ opacity: stickyOpacity }} className="hidden lg:flex items-center">
-                        <h2 className="text-6xl font-bold tracking-tighter text-slate-900">
-                            We exist to close that space.
-                        </h2>
-                    </motion.div>
-                    <div className="prose prose-xl text-slate-700 leading-relaxed space-y-8 py-20">
-                        <p>In Hargeisa, a paradox slows our nation's ascent. We see a generation of brilliant minds—engineers, developers, planners—possessing world-class skills, yet disconnected from the critical projects shaping our skyline and infrastructure.</p>
-                        <p className="font-semibold text-indigo-700">This is <span className="italic">The Great Disconnect</span>: the gap between local talent and local opportunity. It’s the primary obstacle to a truly self-reliant Somaliland.</p>
-                        <p>Dhiselink is not merely a platform. It is the bridge. We are the architects of a new professional ecosystem, engineered to ensure the builders of our future come from within our borders.</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    );
+// --- Call To Action Button ---
+type CTAButtonProps = {
+  href: string;
+  children: React.ReactNode;
+  primary?: boolean;
 };
 
+const CTAButton = ({ href, children, primary = false }: CTAButtonProps) => {
+  const base =
+    "inline-block px-10 py-5 text-lg font-semibold rounded-2xl overflow-hidden relative transform hover:-translate-y-1 transition-all duration-300 shadow";
+  const primaryClasses = "bg-[#2D2D2D] text-white";
+  const secondaryClasses =
+    "bg-transparent border border-gray-300 hover:bg-gray-100/80";
 
-// --- 3. THE MECHANISM: INTERACTIVE REVEAL ---
-const MechanismSection = () => (
-    <AnimatedSection className="max-w-4xl mx-auto space-y-32">
-        <div className="text-center">
-            <h2 className="text-5xl md:text-7xl font-bold tracking-tighter text-slate-900">
-                Our System for Progress
+  return (
+    <a href={href} className={cn(base, primary ? primaryClasses : secondaryClasses)}>
+      <span className="relative z-10 flex items-center justify-center gap-2 transition-colors">
+        {children}
+      </span>
+      {primary && (
+        <motion.div
+          className="absolute inset-0 bg-gradient-to-r from-amber-500 to-amber-700"
+          initial={{ y: "100%" }}
+          whileHover={{ y: 0 }}
+          transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+        />
+      )}
+    </a>
+  );
+};
+
+// --- Main Page ---
+export default function AboutUsModernPage() {
+  const scrollRef = useRef(null);
+  const { scrollYProgress } = useScroll({
+    target: scrollRef,
+    offset: ["start end", "end start"],
+  });
+
+  const parallaxY = useTransform(scrollYProgress, [0, 1], ["-25%", "25%"]);
+  const parallaxOpacity = useTransform(scrollYProgress, [0, 0.5, 1], [0.1, 1, 0.1]);
+
+  const pillars = [
+    {
+      icon: Layers,
+      title: "Progress",
+      description:
+        "We champion sustainable, iterative growth. Our ecosystem thrives on constant evolution—delivering value today while building a stronger tomorrow.",
+    },
+    {
+      icon: Feather,
+      title: "Community",
+      description:
+        "Every line of code and every project is a reflection of the people behind it. Dhiselink is designed by and for professionals, visionaries, and institutions of Somaliland.",
+    },
+    {
+      icon: Shield,
+      title: "Integrity",
+      description:
+        "Trust is our backbone. We commit to a transparent, verified, and fair environment—ensuring every interaction adds credibility to our shared mission.",
+    },
+  ];
+
+  return (
+    <main
+      ref={scrollRef}
+      className="bg-[#FDFBF9] text-[#3D3D3D] antialiased relative"
+    >
+      {/* Hero Section */}
+      <section className="relative h-screen flex items-center justify-center text-center overflow-hidden">
+        <AnimatedHeroBackground />
+        <div className="relative z-10 p-6 flex flex-col items-center max-w-5xl mx-auto">
+          <motion.h1
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 1 }}
+            className="text-6xl md:text-8xl lg:text-9xl font-extrabold tracking-tighter leading-tight text-amber-600"
+          >
+            Architecting Progress.
+          </motion.h1>
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 1, delay: 0.3 }}
+            className="mt-10 max-w-3xl text-xl md:text-2xl text-gray-700 leading-relaxed"
+          >
+            A new era begins here. We’re more than a platform—we’re the bridge
+            between ambition and achievement, the spark that connects talent with
+            transformative projects.
+          </motion.p>
+        </div>
+      </section>
+
+      {/* Divider */}
+      <div className="h-[2px] bg-gradient-to-r from-transparent via-amber-400/40 to-transparent mx-auto w-2/3" />
+
+      {/* Our Blueprint Section */}
+      <section className="py-36 md:py-48 relative">
+        <motion.h2
+          style={{ y: parallaxY, opacity: parallaxOpacity }}
+          className="absolute -top-20 left-0 w-full text-center text-[140px] md:text-[200px] font-extrabold text-amber-500/10 tracking-tighter -z-0"
+        >
+          Our Blueprint
+        </motion.h2>
+        <div className="max-w-5xl mx-auto text-center relative z-10 px-6">
+          <motion.div
+            initial={{ opacity: 0, y: 50 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.3 }}
+            transition={{ duration: 1 }}
+          >
+            <p className="text-2xl md:text-4xl leading-relaxed text-gray-800">
+              In the heart of Hargeisa, where ideas flow endlessly and projects
+              ignite daily, a question remained unanswered:{" "}
+              <span className="text-amber-600 font-semibold">
+                how do we connect the dots?
+              </span>
+            </p>
+            <p className="my-12 text-3xl md:text-5xl leading-relaxed font-semibold italic text-amber-600">
+              Talent was here. Opportunity was here. The missing piece? The Link.
+            </p>
+            <p className="text-xl md:text-2xl leading-relaxed text-gray-600">
+              Dhiselink exists as that critical link—an ecosystem where local
+              brilliance meets national development. Together, we accelerate
+              progress, empower experts, and weave a stronger fabric for our
+              nation’s future.
+            </p>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* Core Pillars Section */}
+      <section className="py-36 md:py-48 bg-white/40">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="text-center mb-20">
+            <h2 className="text-5xl md:text-6xl font-extrabold text-amber-600">
+              Our Core Pillars
             </h2>
+            <p className="mt-4 text-xl text-gray-600 max-w-2xl mx-auto">
+              The timeless principles guiding every connection, decision, and
+              milestone we shape together.
+            </p>
+          </div>
+          <div className="grid md:grid-cols-3 gap-10">
+            {pillars.map((pillar, index) => (
+              <PillarCard key={pillar.title} delay={index * 0.2} {...pillar} />
+            ))}
+          </div>
         </div>
-        <div className="grid md:grid-cols-2 gap-12 items-center">
-            <motion.div variants={itemVariants}>
-                <div className="flex items-center gap-4 mb-4">
-                    <div className="p-4 bg-slate-100 rounded-full border border-slate-200 text-blue-600"><Check className="w-8 h-8" /></div>
-                    <h3 className="text-3xl font-bold text-slate-900">1. Trust, Verified.</h3>
-                </div>
-                <p className="text-xl text-slate-600 leading-relaxed">Our ecosystem is built on a foundation of absolute trust. Every professional undergoes a rigorous verification of credentials, portfolio, and references. This isn't just a profile; it's a vetted, proven record of excellence.</p>
-            </motion.div>
-            <motion.div variants={itemVariants} className="h-64 bg-slate-100 rounded-2xl border border-slate-200">
-                {/* Placeholder for abstract visual */}
-            </motion.div>
-        </div>
-        <HorizontalLine />
-        <div className="grid md:grid-cols-2 gap-12 items-center">
-             <motion.div variants={itemVariants} className="h-64 bg-slate-100 rounded-2xl border border-slate-200 md:order-last">
-                {/* Placeholder for abstract visual */}
-            </motion.div>
-            <motion.div variants={itemVariants}>
-                <div className="flex items-center gap-4 mb-4">
-                    <div className="p-4 bg-slate-100 rounded-full border border-slate-200 text-indigo-600"><Link className="w-8 h-8" /></div>
-                    <h3 className="text-3xl font-bold text-slate-900">2. Opportunity, Matched.</h3>
-                </div>
-                <p className="text-xl text-slate-600 leading-relaxed">Using proprietary algorithms, we move beyond keywords to match deep skill sets with complex project needs. This intelligent connection reduces hiring from months to days, assembling optimal teams with precision.</p>
-            </motion.div>
-        </div>
-        <HorizontalLine />
-        <div className="grid md:grid-cols-2 gap-12 items-center">
-            <motion.div variants={itemVariants}>
-                <div className="flex items-center gap-4 mb-4">
-                    <div className="p-4 bg-slate-100 rounded-full border border-slate-200 text-green-600"><TrendingUp className="w-8 h-8" /></div>
-                    <h3 className="text-3xl font-bold text-slate-900">3. Progress, Measured.</h3>
-                </div>
-                <p className="text-xl text-slate-600 leading-relaxed">We provide all stakeholders with transparent, real-time analytics. From talent deployment to project milestones, our data empowers strategic decisions and ensures accountability from start to finish.</p>
-            </motion.div>
-            <motion.div variants={itemVariants} className="h-64 bg-slate-100 rounded-2xl border border-slate-200">
-                {/* Placeholder for abstract visual */}
-            </motion.div>
-        </div>
-    </AnimatedSection>
-);
+      </section>
 
-// --- 4. THE HORIZON: TRANSITION TO CTA ---
-const HorizonSection = () => {
-    const targetRef = useRef<HTMLDivElement | null>(null);
-    const { scrollYProgress } = useScroll({
-        target: targetRef,
-        offset: ["start end", "end end"]
-    });
-    const bgColor = useTransform(scrollYProgress, [0.3, 1], ["#FFFFFF", "#0F172A"]); // White to slate-900
-    const textColor = useTransform(scrollYProgress, [0.3, 1], ["#0F172A", "#FFFFFF"]); // slate-900 to White
+      {/* Equation Section */}
+      <section className="py-40 md:py-56 bg-[#181818] text-white relative overflow-hidden">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          whileInView={{ opacity: 1, scale: 1 }}
+          viewport={{ once: true }}
+          transition={{ duration: 1 }}
+          className="text-center text-5xl md:text-8xl font-bold tracking-tight relative z-10"
+        >
+          <span>BUILD</span>
+          <span className="mx-6 text-gray-500">+</span>
+          <span>CONNECT</span>
+          <span className="mx-6 text-gray-500">=</span>
+          <span className="text-amber-500">PROGRESS</span>
+        </motion.div>
+      </section>
 
-    return (
-        <div ref={targetRef} className="relative h-[200vh]">
-            <div className="sticky top-0 h-screen flex flex-col justify-center items-center text-center overflow-hidden">
-                <motion.div style={{ backgroundColor: bgColor }} className="absolute inset-0" />
-                <div className="container mx-auto px-6 relative z-10">
-                    <motion.h2
-                        style={{ color: textColor }}
-                        className="text-5xl md:text-8xl font-bold tracking-tighter"
-                    >
-                        The Next Chapter is Yours.
-                    </motion.h2>
-                    <motion.div
-                        className="mt-16 flex flex-col sm:flex-row justify-center items-center gap-4"
-                        initial={{ opacity: 0 }}
-                        style={{ opacity: useTransform(scrollYProgress, [0.8, 1], [0, 1]) }}
-                    >
-                         <a href="/register-professional" className="w-full sm:w-auto bg-white text-slate-900 font-bold py-4 px-8 rounded-full text-lg transition-transform transform hover:scale-105 inline-flex items-center justify-center gap-2">
-                            <Briefcase className="w-5 h-5"/> I'm a Professional
-                        </a>
-                        <a href="/register-organization" className="w-full sm:w-auto text-white font-bold py-4 px-8 rounded-full text-lg transition-colors transform hover:bg-slate-800 inline-flex items-center justify-center gap-2 border border-slate-700">
-                            <Users className="w-5 h-5"/> I'm an Organization
-                        </a>
-                    </motion.div>
-                </div>
+      {/* Call to Action */}
+      <section className="py-36 md:py-48 text-center">
+        <div className="max-w-4xl mx-auto px-6">
+          <motion.div
+            initial={{ opacity: 0, y: 50 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 1 }}
+          >
+            <h2 className="text-5xl md:text-7xl font-bold text-amber-600">
+              Let’s Build the Future Together
+            </h2>
+            <p className="mt-8 max-w-2xl mx-auto text-xl md:text-2xl text-gray-600 leading-relaxed">
+              Whether you’re a visionary professional or a pioneering
+              institution, your contribution fuels the collective progress of a
+              nation. Together, we create, we grow, and we leave a lasting
+              impact.
+            </p>
+            <div className="mt-16 flex flex-col sm:flex-row justify-center items-center gap-8">
+              <CTAButton href="/signup" primary>
+                Join as a Professional <ArrowRight size={20} />
+              </CTAButton>
+              <CTAButton href="/signup">
+                Register an Institution
+              </CTAButton>
             </div>
+          </motion.div>
         </div>
-    );
-};
-
-
-// --- MAIN PAGE COMPONENT ---
-export default function AboutPage() {
-    return (
-        <main className="bg-white antialiased">
-            <style jsx global>{`
-              body {
-                background-color: #0F172A; /* Fallback for smooth transition end */
-              }
-            `}</style>
-            <OvertureSection />
-            <ThesisSection />
-            <MechanismSection />
-            <HorizonSection />
-        </main>
-    );
+      </section>
+    </main>
+  );
 }

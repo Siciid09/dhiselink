@@ -24,6 +24,7 @@
     "react": "^18",
     "react-datepicker": "^8.7.0",
     "react-dom": "^18",
+    "react-hot-toast": "^2.6.0",
     "react-intersection-observer": "^9.16.0",
     "recharts": "^3.2.1",
     "tailwind-merge": "^3.3.1",

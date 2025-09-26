@@ -1,14 +1,15 @@
 "use client";
 
-import React, { useState, useEffect, useTransition, Suspense, FC } from 'react';
-import Link from 'next/link';
+import React, { useState, useEffect, Suspense, FC } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useDebouncedCallback } from 'use-debounce';
-import { Search, MapPin, Briefcase, Loader2, User, ArrowRight } from 'lucide-react';
+import { Search, MapPin, Briefcase, ArrowRight, User } from 'lucide-react';
 
 interface ProfessionalProfile {
     id: string;
+    // UPDATED: Added slug to the type definition
+    slug: string;
     full_name: string;
     professional_title: string;
     avatar_url?: string | null;
@@ -24,7 +25,8 @@ const ProfessionalCard: FC<{ profile: ProfessionalProfile }> = ({ profile }) => 
     const experienceText = profile.years_of_experience ? `${profile.years_of_experience} years` : profile.experience_level;
 
     return (
-        <div className="group relative bg-white rounded-2xl border border-slate-200/80 h-full p-6 flex flex-col transition-all duration-300 ease-in-out hover:shadow-xl hover:-translate-y-1">
+        // UPDATED: Added hover:border-amber-500/50 for theme consistency
+        <div className="group relative bg-white rounded-2xl border border-slate-200/80 h-full p-6 flex flex-col transition-all duration-300 ease-in-out hover:shadow-xl hover:-translate-y-1 hover:border-amber-500/50">
             <div className="flex items-center gap-4 mb-4">
                 <img
                     src={profile.avatar_url || `https://api.dicebear.com/8.x/initials/svg?seed=${encodeURIComponent(profile.full_name)}`}
@@ -33,7 +35,8 @@ const ProfessionalCard: FC<{ profile: ProfessionalProfile }> = ({ profile }) => 
                 />
                 <div>
                     <h3 className="text-lg font-bold text-slate-900">{profile.full_name}</h3>
-                    <p className="text-sm text-sky-600 font-medium">{profile.professional_title}</p>
+                    {/* UPDATED: Changed color from sky to amber */}
+                    <p className="text-sm text-amber-600 font-medium">{profile.professional_title}</p>
                 </div>
             </div>
             
@@ -49,9 +52,10 @@ const ProfessionalCard: FC<{ profile: ProfessionalProfile }> = ({ profile }) => 
                 <div className="flex justify-between items-center text-sm text-slate-500 mb-5">
                     {experienceText && <span className="font-medium flex items-center gap-1.5"><Briefcase size={14}/> {experienceText}</span>}
                 </div>
-                <Link href={`/professionals/${profile.id}`} className="flex items-center justify-center w-full text-sm font-semibold text-slate-800 bg-slate-100 rounded-lg py-2.5 transition-all duration-300 group-hover:bg-sky-600 group-hover:text-white" prefetch={false}>
+                {/* UPDATED: Link now uses the profile.slug */}
+                <a href={`/professionals/${profile.slug}`} className="flex items-center justify-center w-full text-sm font-semibold text-slate-800 bg-slate-100 rounded-lg py-2.5 transition-all duration-300 group-hover:bg-amber-500 group-hover:text-white">
                     View Profile <ArrowRight className="w-4 h-4 ml-2 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
-                </Link>
+                </a>
             </div>
         </div>
     );
@@ -80,6 +84,7 @@ function ProfessionalsClientPage() {
                 const response = await fetch(`/api/professionals?${params.toString()}`);
                 if (!response.ok) throw new Error('Failed to fetch professionals.');
                 const data = await response.json();
+                // UPDATED: API response is now the array directly
                 setProfiles(data);
             } catch (err) { console.error(err); } 
             finally { setLoading(false); }
@@ -102,14 +107,15 @@ function ProfessionalsClientPage() {
                     <p className="mt-4 text-lg text-slate-600 max-w-2xl mx-auto">Browse our network of skilled individuals ready to make an impact.</p>
                 </header>
 
-                <div className="mb-12 relative">
+                <div className="mb-12 relative max-w-lg mx-auto">
                     <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                    <input type="text" placeholder="Search by name, title, or skill..." defaultValue={searchParams.get('q')?.toString()} onChange={(e) => handleSearch(e.target.value)} className="w-full h-14 pl-12 pr-4 rounded-xl bg-white border border-slate-200 focus:ring-2 focus:ring-sky-500" />
+                    {/* UPDATED: Changed focus ring to amber */}
+                    <input type="text" placeholder="Search by name, title, or skill..." defaultValue={searchParams.get('q')?.toString()} onChange={(e) => handleSearch(e.target.value)} className="w-full h-14 pl-12 pr-4 rounded-xl bg-white border border-slate-200 focus:ring-2 focus:ring-amber-500" />
                 </div>
 
                 <main>
                     <AnimatePresence mode="wait">
-                        <motion.div key={searchParams.toString()} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                        <motion.div key={searchParams.toString()} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
                             {loading ? (
                                 Array.from({ length: 12 }).map((_, i) => <SkeletonCard key={i} />)
                             ) : profiles.length > 0 ? (
@@ -125,6 +131,7 @@ function ProfessionalsClientPage() {
     );
 }
 
+// Wrapper component to avoid Suspense boundary errors with hooks
 export default function ProfessionalsPage() {
     return <Suspense><ProfessionalsClientPage /></Suspense>;
 }

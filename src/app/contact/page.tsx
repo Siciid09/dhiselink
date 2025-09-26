@@ -1,100 +1,262 @@
 "use client";
 
-import { motion } from 'framer-motion';
-import { MapPin, Phone, Send, Mail } from 'lucide-react';
+import React, { useState, FC, FormEvent, ReactNode } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  Mail,
+  Phone,
+  MapPin,
+  Loader2,
+  Send,
+  AlertTriangle,
+  CheckCircle2,
+} from "lucide-react";
+import { supabase } from "@/lib/utils/supabase/client"; // Adjust path if needed
 
-// --- 1. MOCK DATA FOR CONTACT PAGE ---
+// Helper for class names
+const cn = (...classes: (string | boolean | undefined)[]) =>
+  classes.filter(Boolean).join(" ");
 
-const contactDetails = [
-    { icon: <MapPin/>, title: "Our Office", line1: "Waaheen, Main Road #1", line2: "Hargeisa, Somaliland" },
-    { icon: <Mail/>, title: "Email Us", line1: "info@dhiselink.so", line2: "partnerships@dhiselink.so" },
-    { icon: <Phone/>, title: "Call Us", line1: "+252 61 123 4567", line2: "+252 61 765 4321" },
-];
-
-// --- 2. PAGE SECTIONS for CONTACT PAGE ---
-
-const ContactHero = () => (
-    <section className="bg-gray-50 pt-40 pb-20 md:pt-48 md:pb-24">
-        <div className="container mx-auto px-6 text-center">
-            <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }} className="text-4xl md:text-6xl font-extrabold tracking-tighter text-gray-900 mb-4">Get In Touch</motion.h1>
-            <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.2 }} className="max-w-2xl mx-auto text-lg text-gray-600">We’re here to help and answer any question you might have. We look forward to hearing from you.</motion.p>
-        </div>
-    </section>
-);
-
-const ContactFormSection = () => (
-    <section className="py-24 bg-white">
-        <div className="container mx-auto px-6">
-            <div className="grid lg:grid-cols-2 gap-16 items-start">
-                {/* Contact Info Column */}
-                <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.8, delay: 0.4 }}>
-                    <h2 className="text-3xl font-bold tracking-tight text-gray-900 mb-8">Contact Information</h2>
-                    <div className="space-y-8">
-                        {contactDetails.map((detail, index) => (
-                            <div key={index} className="flex items-start gap-4">
-                                <div className="flex-shrink-0 bg-blue-100 text-blue-600 rounded-lg p-3">{detail.icon}</div>
-                                <div>
-                                    <h3 className="font-semibold text-lg text-gray-900">{detail.title}</h3>
-                                    <p className="text-gray-600">{detail.line1}</p>
-                                    <p className="text-gray-600">{detail.line2}</p>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                </motion.div>
-
-                {/* Contact Form Column */}
-                <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.8, delay: 0.6 }} className="bg-gray-50 p-8 rounded-lg border border-gray-200">
-                    <form className="space-y-6">
-                        <div>
-                            <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
-                            <input type="text" id="name" name="name" className="w-full h-12 px-4 rounded-lg bg-white border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500" />
-                        </div>
-                        <div>
-                            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
-                            <input type="email" id="email" name="email" className="w-full h-12 px-4 rounded-lg bg-white border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500" />
-                        </div>
-                        <div>
-                            <label htmlFor="subject" className="block text-sm font-medium text-gray-700 mb-1">Subject</label>
-                            <input type="text" id="subject" name="subject" className="w-full h-12 px-4 rounded-lg bg-white border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500" />
-                        </div>
-                        <div>
-                            <label htmlFor="message" className="block text-sm font-medium text-gray-700 mb-1">Message</label>
-                            <textarea id="message" name="message" rows={5} className="w-full p-4 rounded-lg bg-white border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
-                        </div>
-                        <div>
-                            <motion.button type="submit" whileHover={{ scale: 1.05 }} className="w-full flex items-center justify-center gap-2 bg-gray-800 text-white font-semibold py-3 px-6 rounded-lg hover:bg-black transition-colors duration-300">
-                                <Send size={18}/> Send Message
-                            </motion.button>
-                        </div>
-                    </form>
-                </motion.div>
-            </div>
-        </div>
-    </section>
-);
-
-const MapSection = () => (
-    <div className="bg-white pb-24">
-        <div className="container mx-auto px-6">
-            <h2 className="text-3xl font-bold tracking-tight text-gray-900 mb-8 text-center">Our Location</h2>
-             <div className="rounded-lg overflow-hidden border-2 border-gray-200 shadow-lg h-96">
-                 <img src="https://placehold.co/1200x400/e2e8f0/4a5568?text=Map+of+Hargeisa+Office" alt="Map showing Dhiselink office location" className="w-full h-full object-cover" />
-             </div>
-        </div>
-    </div>
-);
-
-
-// --- 3. MAIN PAGE COMPONENT ---
-
-export default function ContactPage() {
-    return (
-        <>
-            <ContactHero />
-            <ContactFormSection />
-            <MapSection />
-        </>
-    );
+// Reusable Input Field Component
+interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+  icon?: ReactNode;
 }
+const Input: FC<InputProps> = ({ icon, ...props }) => (
+  <div className="relative">
+    {icon && (
+      <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-400">
+        {icon}
+      </div>
+    )}
+    <input
+      {...props}
+      className={cn(
+        "w-full bg-white/80 border border-gray-300 text-gray-900 text-sm rounded-xl block p-3 shadow-sm",
+        "focus:ring-2 focus:ring-brand focus:border-brand/50 transition-all duration-300",
+        icon ? "pl-10" : "pl-4"
+      )}
+    />
+  </div>
+);
 
+// Main Contact Component
+export default function ContactPage() {
+  const [formData, setFormData] = useState({
+    fullName: "",
+    email: "",
+    inquiryType: "General Inquiry",
+    subject: "",
+    message: "",
+  });
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [formStatus, setFormStatus] = useState<"success" | "error" | null>(
+    null
+  );
+  const [formMessage, setFormMessage] = useState<string>("");
+
+  const handleChange = (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >
+  ) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    setFormStatus(null);
+    setFormMessage("");
+
+    const { error } = await supabase.from("messages").insert({
+      full_name: formData.fullName,
+      email: formData.email,
+      inquiry_type: formData.inquiryType,
+      subject: formData.subject,
+      message: formData.message,
+    });
+
+    setIsSubmitting(false);
+
+    if (error) {
+      setFormStatus("error");
+      setFormMessage(
+        "There was an issue sending your message. Please try again."
+      );
+      console.error("Supabase error:", error.message);
+    } else {
+      setFormStatus("success");
+      setFormMessage("Thank you! Your message has been sent successfully.");
+      setFormData({
+        fullName: "",
+        email: "",
+        inquiryType: "General Inquiry",
+        subject: "",
+        message: "",
+      });
+    }
+  };
+
+  const contactInfo = [
+    { icon: <Mail size={20} />, text: "contact@dhiselink.so" },
+    { icon: <Phone size={20} />, text: "+252 63 4XXXXXX" },
+    { icon: <MapPin size={20} />, text: "Hargeisa, Somaliland" },
+  ];
+
+  const inquiryTypes = [
+    "General Inquiry",
+    "Partnership",
+    "Project Proposal",
+    "Technical Support",
+    "Press",
+  ];
+
+  return (
+    <div className="bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen flex items-center justify-center p-4 sm:p-6 lg:p-8">
+      <motion.div
+        initial={{ opacity: 0, y: 50 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8, ease: "easeOut" }}
+        className="container max-w-6xl mx-auto bg-white rounded-3xl shadow-2xl overflow-hidden border border-gray-200"
+      >
+        <div className="grid md:grid-cols-2">
+          {/* Left Column */}
+          <div className="p-8 sm:p-12 bg-gradient-to-br from-brand/5 via-gray-100 to-gray-50 relative">
+            <div className="absolute -top-16 -left-16 w-48 h-48 bg-brand/10 rounded-full blur-2xl" />
+            <div className="absolute -bottom-24 -right-12 w-64 h-64 bg-brand/5 rounded-full blur-2xl" />
+
+            <div className="relative z-10">
+              <h1 className="text-4xl md:text-5xl font-extrabold text-gray-900 tracking-tight">
+                Let’s Connect
+              </h1>
+              <p className="mt-4 text-lg text-gray-600">
+                Have a question, proposal, or just want to say hello? We’d love
+                to hear from you.
+              </p>
+              <div className="mt-12 space-y-6">
+                {contactInfo.map((item, index) => (
+                  <motion.div
+                    key={index}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.5, delay: 0.2 + index * 0.1 }}
+                    className="flex items-center gap-4"
+                  >
+                    <div className="flex-shrink-0 w-12 h-12 bg-white rounded-full flex items-center justify-center text-brand shadow-md border">
+                      {item.icon}
+                    </div>
+                    <span className="text-gray-700 font-medium">
+                      {item.text}
+                    </span>
+                  </motion.div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Right Column: Form */}
+          <div className="p-8 sm:p-12">
+            <form onSubmit={handleSubmit} className="space-y-5">
+              <Input
+                name="fullName"
+                type="text"
+                placeholder="Full Name"
+                value={formData.fullName}
+                onChange={handleChange}
+                required
+              />
+              <Input
+                name="email"
+                type="email"
+                placeholder="Email Address"
+                value={formData.email}
+                onChange={handleChange}
+                required
+              />
+              <div>
+                <select
+                  name="inquiryType"
+                  value={formData.inquiryType}
+                  onChange={handleChange}
+                  required
+                  className="w-full bg-white/80 border border-gray-300 text-gray-900 text-sm rounded-xl focus:ring-2 focus:ring-brand focus:border-brand/50 block p-3 shadow-sm transition-all duration-300"
+                >
+                  {inquiryTypes.map((type) => (
+                    <option key={type} value={type}>
+                      {type}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <Input
+                name="subject"
+                type="text"
+                placeholder="Subject"
+                value={formData.subject}
+                onChange={handleChange}
+                required
+              />
+              <textarea
+                name="message"
+                rows={5}
+                placeholder="Your Message..."
+                value={formData.message}
+                onChange={handleChange}
+                required
+                className="w-full bg-white/80 border border-gray-300 text-gray-900 text-sm rounded-xl focus:ring-2 focus:ring-brand focus:border-brand/50 block p-3 shadow-sm transition-all duration-300"
+              />
+
+              <div className="flex flex-col items-start gap-4">
+                {/* Modern White Button */}
+                <motion.button
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.97 }}
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="inline-flex items-center justify-center gap-2 px-8 py-3 font-bold rounded-xl shadow-lg border border-gray-200 
+                  bg-white text-brand hover:text-white hover:bg-brand hover:border-brand 
+                  transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand disabled:opacity-60"
+                >
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="animate-spin" size={20} />
+                      Sending...
+                    </>
+                  ) : (
+                    <>
+                      <Send size={18} />
+                      Send Message
+                    </>
+                  )}
+                </motion.button>
+
+                {/* Status Message */}
+                <AnimatePresence>
+                  {formMessage && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      className={cn(
+                        "flex items-center gap-3 text-sm font-medium p-3 rounded-lg w-full",
+                        formStatus === "success"
+                          ? "bg-green-100 text-green-800"
+                          : "",
+                        formStatus === "error" ? "bg-red-100 text-red-800" : ""
+                      )}
+                    >
+                      {formStatus === "success" && <CheckCircle2 size={20} />}
+                      {formStatus === "error" && <AlertTriangle size={20} />}
+                      <span>{formMessage}</span>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            </form>
+          </div>
+        </div>
+      </motion.div>
+    </div>
+  );
+}

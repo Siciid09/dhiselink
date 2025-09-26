@@ -1,0 +1,128 @@
+Of course. Here is a single, organized document detailing your complete database schema based on all the tables you sent.
+
+---
+### ## `profiles`
+This table stores user profile information, linking to the `auth.users` table. It's the central hub for user data, including roles like admin status.
+
+**Required Fields**
+- **`id`**: `uuid` (Primary Key, Foreign Key to `auth.users.id`)
+- **`created_at`**: `timestamptz` (Defaults to `now()`)
+
+**Optional Fields**
+- **`full_name`**: `text`
+- **`email`**: `text`
+- **`role`**: `text` (e.g., 'individual', 'organization')
+- **`is_admin`**: `bool` (Defaults to `false`)
+- **`organization_name`**: `text`
+- **`account_type`**: `text`
+- `avatar_url`, `bio`, `skills`, `resume_url`, `linkedin_url`, `github_url`, `website_url`, `industry`, `logo_url`, `banner_url`, `location`, `name`, `phone`, `website`, `onboarding_complete`, `professional_title`, `employee_count`, `category`, `tags`, `languages`, `certifications`, `portfolio_url`, `faculties`, `accreditation`, `programs`, `departments`, `courses`, `research_projects`, `notable_alumni`, `department`, `public_services`, `announcements`, `community_focus`, `members_count`, `projects`, `social_links`, `work_experience`, `education`, `mission_vision`, `key_services`, `products_offerings`, `key_contacts`, `awards`, `visibility`, `slug`, `cover_image_url`, `tagline`, `services`, `organization_type`, `organization_subtype`, `year_founded`, `degree`, `experience_level`, `field_of_study`, `years_of_experience`, `operating_regions`
+
+---
+### ## `jobs`
+Stores all job postings created by organizations.
+
+**Required Fields**
+- **`id`**: `uuid` (Primary Key)
+- **`organization_id`**: `uuid`
+- **`title`**: `text`
+- **`created_at`**: `timestamptz` (Defaults to `now()`)
+- **`updated_at`**: `timestamptz` (Defaults to `now()`)
+
+**Optional Fields**
+- **`organization_name`**: `text`
+- **`organization_type`**: `organization_type` (Enum: company, agency, NGO, etc.)
+- **`status`**: `job_status` (Enum: active, closed, draft)
+- **`description`**: `text`
+- **`location`**: `text`
+- **`type`**: `job_type` (Enum: full-time, part-time, etc.)
+- `organization_logo_url`, `short_description`, `industry`, `requirements`, `tags`, `deadline`, `featured`, `image_url`, `salary_range`, `posted_by_name`, `posted_by_email`, `views_count`, `applications_count`, `external_link`, `job_type`
+
+---
+### ## `ideas`
+A place for users to submit ideas for community or business initiatives.
+
+**Required Fields**
+- **`id`**: `uuid` (Primary Key)
+- **`author_id`**: `uuid` (Foreign Key to `public.profiles.id`)
+
+**Optional Fields**
+- **`created_at`**: `timestamptz` (Defaults to `now()`)
+- **`title`**: `text`
+- **`category`**: `text`
+- **`summary`**: `text`
+- **`details`**: `text`
+- **`status`**: `text` (e.g., 'pending', 'approved', 'rejected')
+- `seeking`, `cover_image_url`, `other_images`, `expected_impact`, `tags`, `visibility`
+
+---
+### ## `heritage_sites`
+Contains information about cultural and heritage locations.
+
+**Required Fields**
+- **`id`**: `uuid` (Primary Key)
+- **`title`**: `text`
+- **`category`**: `text`
+- **`location`**: `text`
+- **`summary`**: `text`
+- **`cover_image_url`**: `text`
+
+**Optional Fields**
+- **`created_at`**: `timestamptz` (Defaults to `now()`)
+- **`status`**: `text` (e.g., 'pending', 'approved', 'rejected')
+- **`submitted_by`**: `uuid`
+- **`description`**: `text`
+- **`gallery_images`**: `jsonb`
+
+---
+### ## `messages`
+Stores messages sent through the contact form.
+
+**Required Fields**
+- **`id`**: `int8` (Primary Key)
+- **`created_at`**: `timestamptz` (Defaults to `now()`)
+- **`full_name`**: `text`
+- **`email`**: `text`
+- **`inquiry_type`**: `text`
+- **`subject`**: `text`
+- **`message`**: `text`
+
+**Optional Fields**
+- **`is_read`**: `bool`
+
+---
+### ## `partners`
+A simple table to manage logos and names of partner organizations.
+
+**Required Fields**
+- **`id`**: `uuid` (Primary Key)
+- **`name`**: `text`
+
+**Optional Fields**
+- **`created_at`**: `timestamptz` (Defaults to `now()`)
+- **`logo_url`**: `text`
+- **`display_order`**: `int4`
+
+---
+### ## `testimonials`
+Stores quotes and reviews from users or partners.
+
+**Required Fields**
+- **`id`**: `uuid` (Primary Key)
+- **`name`**: `text`
+- **`quote`**: `text`
+
+**Optional Fields**
+- **`created_at`**: `timestamptz` (Defaults to `now()`)
+- **`role`**: `text`
+- **`is_featured`**: `bool`
+
+---
+### ## Other Tables
+These tables support more specific features of your application.
+
+- **`initiatives`**: Manages special initiatives like events or grants posted by organizations.
+- **`programs`**: For academic or training programs, linked to organizations/universities.
+- **`services`**: Lists professional services offered by organizations.
+- **`organizations`**: Potentially a legacy or separate table for organization details.
+- **`universities`**: A directory of universities on the platform.
+- **`sectors`**: Defines different industry sectors for categorization.
