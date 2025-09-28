@@ -1,17 +1,17 @@
 "use server";
 
-import { createServerActionClient } from "@supabase/auth-helpers-nextjs";
+import { createClient as createServerClient } from '@/lib/supabase/server'; // <-- CORRECTED IMPORT
 import { revalidatePath } from "next/cache";
-import { cookies } from "next/headers";
 import { createClient } from '@supabase/supabase-js';
 
-// Admin client for elevated privileges (like deleting auth users)
+// Admin client for elevated privileges (like deleting auth users) - THIS IS CORRECT
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
-const supabase = createServerActionClient({ cookies });
+// This is the corrected client for standard actions. It now matches the rest of your app.
+const supabase = createServerClient(); // <-- CORRECTED INITIALIZATION
 
 // --- GENERAL HELPER ---
 async function handleSupabaseError(error: any, successMessage: string) {
@@ -107,7 +107,6 @@ export async function createTestimonialAction(formData: FormData) {
   return handleSupabaseError(error, "Testimonial created successfully.");
 }
 
-// THIS IS THE FIX. Ensure this function has the 'return' statement.
 export async function deleteTestimonialAction(testimonialId: string) {
   const { error } = await supabase.from("testimonials").delete().eq("id", testimonialId);
   return handleSupabaseError(error, "Testimonial deleted successfully.");
