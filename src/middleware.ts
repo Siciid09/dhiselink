@@ -1,54 +1,69 @@
-import { createMiddlewareClient } from '@supabase/auth-helpers-nextjs';
-import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
+import { createServerClient, type CookieOptions } from '@supabase/ssr'
+import { NextResponse, type NextRequest } from 'next/server'
 
-export async function middleware(req: NextRequest) {
-  const res = NextResponse.next();
-  const supabase = createMiddlewareClient({ req, res });
-  const { data: { user } } = await supabase.auth.getUser();
+export async function middleware(request: NextRequest) {
+  let response = NextResponse.next({
+    request: {
+      headers: request.headers,
+    },
+  })
 
-  const { pathname, origin } = req.nextUrl;
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        get(name: string) {
+          return request.cookies.get(name)?.value
+        },
+        set(name: string, value: string, options: CookieOptions) {
+          request.cookies.set({ name, value, ...options })
+          response = NextResponse.next({
+            request: {
+              headers: request.headers,
+            },
+          })
+          response.cookies.set({ name, value, ...options })
+        },
+        remove(name: string, options: CookieOptions) {
+          request.cookies.set({ name, value: '', ...options })
+          response = NextResponse.next({
+            request: {
+              headers: request.headers,
+            },
+          })
+          response.cookies.set({ name, value: '', ...options })
+        },
+      },
+    }
+  )
 
-  // Rule 1: Protect Auth Pages from logged-in users
+  const { data: { user } } = await supabase.auth.getUser()
+  const { pathname, origin } = request.nextUrl;
+
+  // If user is logged in, redirect them away from auth pages.
   if (user && (pathname === '/login' || pathname === '/register')) {
-    return NextResponse.redirect(new URL('/dashboard', origin));
+    return NextResponse.redirect(`${origin}/dashboard`);
   }
 
-  // Rule 2: Protect Private Pages from logged-out users
-  // --- THIS IS THE ONLY CHANGE ---
-  const privateRoutes = ['/dashboard', '/onboarding', '/select-role', '/admin'];
+  // If user is NOT logged in, protect private pages.
+  const privateRoutes = ['/dashboard', '/onboarding/complete-profile'];
   if (!user && privateRoutes.some(route => pathname.startsWith(route))) {
-    return NextResponse.redirect(new URL('/login', origin));
+    return NextResponse.redirect(`${origin}/login`);
   }
   
-  // Rule 3: Your original, robust onboarding logic
-  if (user) {
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('onboarding_complete')
-      .eq('id', user.id)
-      .single();
-
-    const isOnboardingFlow = pathname.startsWith('/onboarding') || pathname.startsWith('/select-role');
-
-    // This logic correctly handles new users who haven't finished onboarding
-    if (profile && profile.onboarding_complete === false) {
-      if (!isOnboardingFlow && pathname !== '/dashboard') { // Allow access to dashboard
-        return NextResponse.redirect(new URL('/select-role', origin));
-      }
-    } else if (profile && profile.onboarding_complete === true) { // For completed users
-      // If a fully onboarded user tries to visit an onboarding page, send them away.
-      if (isOnboardingFlow) {
-        return NextResponse.redirect(new URL('/dashboard', origin));
-      }
-    }
-  }
-
-  return res;
+  return response
 }
 
 export const config = {
   matcher: [
+    /*
+     * Match all request paths except for the ones starting with:
+     * - api (API routes)
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico (favicon file)
+     */
     '/((?!api|_next/static|_next/image|favicon.ico).*)',
   ],
-};
+}

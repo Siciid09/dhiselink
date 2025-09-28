@@ -1,4 +1,4 @@
-import { createServerComponentClient } from '@supabase/auth-helpers-nextjs';
+import { createClient } from '@/lib/supabase/server';
 import { cookies } from 'next/headers';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
@@ -9,7 +9,7 @@ export const dynamic = 'force-dynamic';
 
 // --- UPDATED: The function now receives 'slug' instead of 'id' ---
 export default async function OrganizationDetailPage({ params }: { params: { slug: string } }) {
-    const supabase = createServerComponentClient({ cookies });
+    const supabase = createClient();
     const { slug } = params;
 
     // --- UPDATED: The query now fetches the profile using the 'slug' ---

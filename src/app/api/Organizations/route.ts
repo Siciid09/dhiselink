@@ -1,22 +1,26 @@
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
-import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
+// UPDATED: Import the new, correct helper for creating a server client
+import { createClient } from '@/lib/supabase/server';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET(request: Request) {
-  const supabase = createRouteHandlerClient({ cookies });
+  // UPDATED: Use the new helper to create a Supabase client
+  const supabase = createClient();
   const { searchParams } = new URL(request.url);
+
+  // Get filter parameters from the request URL
   const type = searchParams.get('type');
   const tags = searchParams.get('tags')?.split(',');
   const searchQuery = searchParams.get('search');
 
   try {
-    // --- UPDATED: Added 'slug' to the select statement ---
+    // --- 1. Fetch all organizations based on filters ---
     let query = supabase
       .from('profiles')
       .select('id, slug, organization_name, logo_url, location, bio, organization_type, tags')
-      .in('role', ['organization', 'company', 'university', 'ngo']);
+      // Ensure we only get profiles that are organizations
+      .in('role', ['organization']); 
 
     if (type && type !== 'All') {
       query = query.eq('organization_type', type);
@@ -28,21 +32,23 @@ export async function GET(request: Request) {
         query = query.ilike('organization_name', `%${searchQuery}%`);
     }
 
-    const { data: organizations, error } = await query.order('created_at', { ascending: false });
-    if (error) throw error;
+    const { data: organizations, error: orgsError } = await query.order('created_at', { ascending: false });
+    if (orgsError) throw orgsError;
 
-    // --- UPDATED: Added 'slug' to the select statement for featured orgs ---
+    // --- 2. Fetch a few featured organizations ---
     const { data: featured, error: featuredError } = await supabase
       .from('profiles')
       .select('id, slug, organization_name, logo_url, location, bio, organization_type, tags')
-      .in('role', ['organization', 'company', 'university', 'ngo'])
+      .in('role', ['organization'])
       .eq('featured', true)
       .limit(4);
     if (featuredError) throw featuredError;
 
+    // --- 3. Fetch all unique tags using the database function for filtering ---
     const { data: uniqueTags, error: tagsError } = await supabase.rpc('get_unique_organization_tags');
     if (tagsError) throw tagsError;
 
+    // Return all the data in a single, successful response
     return NextResponse.json({ 
         organizations: organizations || [],
         featured: featured || [],
@@ -50,6 +56,7 @@ export async function GET(request: Request) {
     });
 
   } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error("API Error fetching organizations:", error.message);
+    return NextResponse.json({ error: `Failed to fetch data: ${error.message}` }, { status: 500 });
   }
 }

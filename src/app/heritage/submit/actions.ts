@@ -1,22 +1,18 @@
 "use server";
 
-import { createServerActionClient } from "@supabase/auth-helpers-nextjs";
-import { cookies } from "next/headers";
-import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
+import { revalidatePath } from 'next/cache';
+import { redirect } from 'next/navigation';
+import { createClient } from '@/lib/supabase/server';
 
 interface ActionState { error: string | null; }
 
-const parseJsonSafe = (jsonString: string | null) => {
-    if (!jsonString) return null;
-    try { return JSON.parse(jsonString); } 
-    catch (e) { return null; }
-};
-
 export async function submitHeritageSite(prevState: ActionState, formData: FormData): Promise<ActionState> {
-    const supabase = createServerActionClient({ cookies });
+    const supabase = createClient();
+    
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return { error: "You must be logged in to submit a site." };
+    if (!user) {
+        return { error: "You must be logged in to submit a site." };
+    }
 
     const siteData = {
         title: formData.get('title') as string,
@@ -25,8 +21,8 @@ export async function submitHeritageSite(prevState: ActionState, formData: FormD
         summary: formData.get('summary') as string,
         description: formData.get('description') as string,
         cover_image_url: formData.get('cover_image_url') as string,
-        gallery_images: parseJsonSafe(formData.get('gallery_images') as string),
-        submitted_by: user.id,
+        gallery_images: JSON.parse(formData.get('gallery_images') as string || '[]'),
+        author_id: user.id,
     };
 
     if (!siteData.title || !siteData.category || !siteData.location || !siteData.summary || !siteData.cover_image_url) {

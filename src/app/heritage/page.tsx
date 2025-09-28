@@ -1,80 +1,43 @@
-"use client";
+/// File Path: app/heritage/page.tsx
 
-import React, { useState, useEffect, Suspense } from 'react';
+import { createClient } from '@/lib/supabase/server';
 import Link from 'next/link';
-import { useSearchParams, useRouter, usePathname } from 'next/navigation';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Landmark, PlusCircle, Eye } from 'lucide-react';
+import { Landmark } from 'lucide-react';
 
-interface HeritageSite {
-    id: string;
-    title: string;
-    category: string;
-    location: string;
-    summary: string;
-    cover_image_url: string;
-}
+export const dynamic = 'force-dynamic';
 
-const HeritageCard = ({ site }: { site: HeritageSite }) => {
-    // Truncate summary to 10 words
-    const shortSummary = site.summary.split(' ').slice(0, 10).join(' ') + (site.summary.split(' ').length > 10 ? '...' : '');
-
-    return (
-        <div className="group bg-white rounded-2xl border border-slate-200 flex flex-col transition-all duration-300 hover:shadow-xl hover:-translate-y-1.5">
-            <Link href={`/heritage/${site.id}`} className="block">
-                <div className="h-48 bg-slate-100 relative rounded-t-2xl overflow-hidden">
-                    <img src={site.cover_image_url} alt={site.title} className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
-                    <span className="absolute top-3 right-3 text-xs font-semibold px-3 py-1 rounded-full bg-white/90 text-slate-800">{site.category}</span>
-                </div>
-            </Link>
-            <div className="p-5 flex flex-col flex-grow">
-                <h2 className="text-xl font-bold text-slate-900">{site.title}</h2>
-                <p className="text-slate-500 mt-1 text-sm">{site.location}</p>
-                <p className="text-slate-600 mt-3 text-sm flex-grow">{shortSummary}</p>
-                <div className="mt-4 pt-4 border-t border-slate-100">
-                    <Link href={`/heritage/${site.id}`} className="w-full flex items-center justify-center gap-2 py-2.5 bg-slate-100 text-slate-700 font-semibold rounded-lg hover:bg-sky-600 hover:text-white transition-colors">
-                        <Eye size={16} /> View Details
-                    </Link>
-                </div>
+// A card component to display each heritage site
+const HeritageCard = ({ site }: { site: any }) => (
+    <Link 
+      href={`/heritage/${site.slug || site.id}`} // <-- CRITICAL: Uses the slug for the URL!
+      className="block group bg-white rounded-2xl border border-slate-200/80 flex flex-col transition-all duration-300 hover:shadow-xl hover:-translate-y-1.5 hover:border-amber-500/50"
+    >
+        <div className="h-48 bg-slate-100 relative rounded-t-2xl overflow-hidden">
+            <img src={site.cover_image_url} alt={site.title} className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
+            <span className="absolute top-3 right-3 text-xs font-semibold px-3 py-1 rounded-full bg-white/90 text-slate-800">{site.category}</span>
+        </div>
+        <div className="p-5 flex flex-col flex-grow">
+            <h2 className="text-xl font-bold text-slate-900 group-hover:text-amber-600 transition-colors">{site.title}</h2>
+            <p className="text-slate-500 mt-1 text-sm flex-grow">{site.location}</p>
+            <div className="mt-4 pt-4 border-t border-slate-100 text-center text-sm font-semibold text-slate-700 group-hover:text-white group-hover:bg-slate-800 transition-colors py-2.5 rounded-lg bg-slate-100">
+                View Details
             </div>
         </div>
-    );
-};
+    </Link>
+);
 
-function HeritageClientPage() {
-    const [sites, setSites] = useState<HeritageSite[]>([]);
-    const [loading, setLoading] = useState(true);
-    const searchParams = useSearchParams();
-    const router = useRouter();
-    const pathname = usePathname();
 
-    const activeCategory = searchParams.get('category') || 'All';
-    const categories = ['All', 'Archaeological', 'Historical Landmark', 'Natural Wonder', 'Cultural Practice', 'Monument'];
-
-    useEffect(() => {
-        const fetchSites = async () => {
-            setLoading(true);
-            const params = new URLSearchParams({ category: activeCategory });
-            try {
-                const response = await fetch(`/api/heritage?${params.toString()}`);
-                if (!response.ok) throw new Error("Failed to fetch heritage sites.");
-                const data = await response.json();
-                setSites(data);
-            } catch (error) {
-                console.error(error);
-            } finally {
-                setLoading(false);
-            }
-        };
-        fetchSites();
-    }, [activeCategory]);
+export default async function HeritagePage() {
+    const supabase = createClient();
     
-    const handleFilterChange = (category: string) => {
-        const params = new URLSearchParams(searchParams.toString());
-        params.set('category', category);
-        router.push(`${pathname}?${params.toString()}`);
-    };
+    // Fetches all heritage sites to display them. We will remove the status check for now.
+    const { data: sites, error } = await supabase
+        .from('heritage_sites')
+        .select(`id, slug, title, category, location, summary, cover_image_url`)
+        .order('created_at', { ascending: false });
+
+    if (error) console.error("Error fetching heritage sites:", error);
 
     return (
         <div className="bg-slate-50 min-h-screen">
@@ -85,38 +48,17 @@ function HeritageClientPage() {
                     <p className="mt-4 text-lg text-slate-600 max-w-2xl mx-auto">Explore the rich history and cultural landmarks that define our story.</p>
                 </header>
 
-                <div className="mb-12 p-4 rounded-xl border bg-white/80 backdrop-blur-lg shadow-lg flex flex-col sm:flex-row items-center justify-between gap-4 sticky top-4 z-50">
-                     <div className="flex items-center gap-2 flex-wrap">
-                        {categories.map(cat => (
-                            <button key={cat} onClick={() => handleFilterChange(cat)} className={`px-4 py-2 text-sm font-semibold rounded-full transition-all ${activeCategory === cat ? 'bg-sky-600 text-white shadow' : 'bg-slate-100 hover:bg-slate-200 text-slate-700'}`}>{cat}</button>
-                        ))}
-                    </div>
-                    <Link href="/heritage/submit" className="w-full sm:w-auto flex-shrink-0 bg-sky-600 text-white font-semibold py-2.5 px-5 rounded-lg flex items-center justify-center gap-2 hover:bg-sky-700 transition-all"><PlusCircle size={20} /> Add Heritage Site</Link>
-                </div>
-
-                <AnimatePresence mode="wait">
-                    <motion.div key={activeCategory} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {loading ? (
-                            Array.from({ length: 6 }).map((_, i) => <div key={i} className="h-96 bg-slate-200 rounded-2xl animate-pulse" />)
-                        ) : sites.length > 0 ? (
-                            sites.map(site => <HeritageCard key={site.id} site={site} />)
-                        ) : (
-                            <div className="col-span-full text-center p-12 bg-white rounded-lg border-2 border-dashed">
-                                <h3 className="text-xl font-semibold text-slate-700">No Sites Found</h3>
-                                <p className="text-slate-500 mt-2">There are no heritage sites matching the category "{activeCategory}".</p>
-                            </div>
-                        )}
-                    </motion.div>
-                </AnimatePresence>
+                <main className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {sites && sites.length > 0 ? (
+                        sites.map((site) => <HeritageCard key={site.id} site={site} />)
+                    ) : (
+                        <div className="col-span-full text-center bg-white p-12 rounded-lg border-2 border-dashed">
+                            <h3 className="font-bold text-xl text-slate-700">No Heritage Sites Found</h3>
+                            <p className="text-slate-600 mt-2">Be the first to add a site and share our culture.</p>
+                        </div>
+                    )}
+                </main>
             </div>
         </div>
-    );
-}
-
-export default function HeritagePage() {
-    return (
-        <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading Heritage...</div>}>
-            <HeritageClientPage />
-        </Suspense>
     );
 }

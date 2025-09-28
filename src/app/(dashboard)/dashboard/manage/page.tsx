@@ -1,78 +1,62 @@
-import { createServerComponentClient } from '@supabase/auth-helpers-nextjs';
-import { cookies } from 'next/headers';
+import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
-import { Suspense } from 'react';
 import ManagementClientUI from './ManagePageClient';
 
-export const dynamic = 'force-dynamic';
+// Helper function to create the correct public URL for any content type
+const getViewUrl = (item: any) => {
+    const slugOrId = item.slug || item.id;
+    switch (item.type) {
+        case 'job': return `/opportunities/jobs/${slugOrId}`;
+        case 'idea': return `/ideas/${slugOrId}`;
+        case 'service': return `/services/${slugOrId}`;
+        case 'program': return `/programs/${slugOrId}`;
+        case 'gallery': return `/galleries/${slugOrId}`;
+        case 'heritage_site': return `/heritage/${slugOrId}`; // Corrected: Added heritage site case
+        default: return `/`;
+    }
+};
 
-export default async function ManageOpportunitiesPage() {
-    const supabase = createServerComponentClient({ cookies });
+export default async function ManageContentPage() {
+    const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) redirect('/login');
 
-    // 1. Fetch the user's profile to determine their role
-    const { data: profile } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', user.id)
-        .single();
-
-    if (!profile) {
-        redirect('/select-role');
+    if (!user) {
+        redirect('/login');
     }
 
-    let fetchedItems: any[] = [];
+    // Fetch all types of content, making sure to select the 'slug'
+    const jobsPromise = supabase.from('jobs').select('id, slug, title, status, created_at').eq('organization_id', user.id);
+    const ideasPromise = supabase.from('ideas').select('id, slug, title, status, created_at').eq('author_id', user.id);
+    const servicesPromise = supabase.from('services').select('id, slug, title, status, created_at').eq('organization_id', user.id);
+    const programsPromise = supabase.from('programs').select('id, slug, title, status, created_at').eq('organization_id', user.id);
+    const initiativesPromise = supabase.from('initiatives').select('id, slug, title, type, status, created_at').eq('organization_id', user.id);
+    const galleriesPromise = supabase.from('galleries').select('id, slug, title, created_at').eq('organization_id', user.id);
+    const heritageSitesPromise = supabase.from('heritage_sites').select('id, slug, title, status, created_at').eq('author_id', user.id); // Corrected: Added promise for heritage sites
 
-    // 2. Conditionally and efficiently fetch data based on the user's role
-    switch (profile.role) {
-        case 'company':
-            const { data: companyJobs } = await supabase.from('jobs').select('*').eq('organization_id', user.id);
-            const { data: companyServices } = await supabase.from('services').select('*').eq('organization_id', user.id);
-            fetchedItems = [
-                ...(companyJobs || []).map(item => ({ ...item, type: 'job' })),
-                ...(companyServices || []).map(item => ({ ...item, type: 'service' }))
-            ];
-            break;
+    const results = await Promise.all([
+        jobsPromise,
+        ideasPromise,
+        servicesPromise,
+        programsPromise,
+        initiativesPromise,
+        galleriesPromise,
+        heritageSitesPromise // Corrected: Added promise to the array
+    ]);
 
-        case 'university':
-            const { data: uniJobs } = await supabase.from('jobs').select('*').eq('organization_id', user.id);
-            const { data: uniPrograms } = await supabase.from('programs').select('*').eq('organization_id', user.id);
-            fetchedItems = [
-                ...(uniJobs || []).map(item => ({ ...item, type: 'job' })),
-                ...(uniPrograms || []).map(item => ({ ...item, type: 'program' }))
-            ];
-            break;
-            
-        case 'ngo_gov':
-        case 'other':
-            const { data: orgJobs } = await supabase.from('jobs').select('*').eq('organization_id', user.id);
-            const { data: orgInitiatives } = await supabase.from('initiatives').select('*').eq('organization_id', user.id);
-            fetchedItems = [
-                ...(orgJobs || []).map(item => ({ ...item, type: 'job' })),
-                ...(orgInitiatives || []).map(item => ({ ...item, type: item.type?.toLowerCase() || 'project' }))
-            ];
-            break;
-            
-        case 'individual':
-            const { data: ideas } = await supabase.from('ideas').select('*').eq('author_id', user.id);
-            fetchedItems = (ideas || []).map(item => ({ ...item, type: 'idea' }));
-            break;
-
-        default:
-            fetchedItems = [];
-            break;
-    }
-
-    // 3. Sort all fetched items by their creation date
-    fetchedItems.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+    const allItems = results.flatMap((result, index) => {
+        const typeMap = ['job', 'idea', 'service', 'program', 'initiative', 'gallery', 'heritage_site']; // Corrected: Added heritage_site type
+        if (!result.data) return [];
+        return result.data.map((item: any) => ({
+            ...item,
+            // Standardize the 'type' and construct the final view URL here
+            type: item.type ? item.type.toLowerCase() : typeMap[index],
+            viewHref: getViewUrl({ ...item, type: item.type ? item.type.toLowerCase() : typeMap[index] })
+        }));
+    }).sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
     return (
-        <div className="bg-slate-50 min-h-screen p-4 sm:p-6 lg:p-8">
-            <Suspense fallback={<div className="text-center p-20 font-semibold text-slate-600">Loading your content...</div>}>
-                {/* 4. Pass the final, correct data to the UI component */}
-                <ManagementClientUI initialItems={fetchedItems} />
-            </Suspense>
+        <div className="p-4 sm:p-6 lg:p-8">
+            <ManagementClientUI initialItems={allItems} />
         </div>
     );
 }

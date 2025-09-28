@@ -1,99 +1,63 @@
-"use client";
+import { createClient } from '@/lib/supabase/server';
+import { notFound } from 'next/navigation';
+import { ArrowLeft, User, Calendar, Tag, MapPin } from 'lucide-react';
+import Link from 'next/link';
 
-import { useFormState, useFormStatus } from 'react-dom';
-import { submitHeritageSite } from './actions';
-import { Landmark, AlertTriangle, UploadCloud, Image as ImageIcon } from 'lucide-react';
-import React, { useState, ChangeEvent } from 'react';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
-import { v4 as uuidv4 } from 'uuid';
-import { User } from '@supabase/supabase-js';
-
-function SubmitButton() {
-    const { pending } = useFormStatus();
-    return <button type="submit" disabled={pending} className="w-full py-3 px-6 bg-sky-600 text-white font-bold rounded-lg">{pending ? "Submitting..." : "Submit Heritage Site"}</button>;
-}
-
-const FileUpload = ({ name, label, onUploadComplete, multiple = false }: { name: string, label: string, onUploadComplete: (urls: string[]) => void, multiple?: boolean }) => {
-    const [uploading, setUploading] = useState(false);
-    const [previews, setPreviews] = useState<string[]>([]);
-    const supabase = createClientComponentClient();
+export default async function HeritageDetailPage({ params }: { params: { slug: string } }) {
+    const supabase = createClient();
     
-    const handleUpload = async (event: ChangeEvent<HTMLInputElement>) => {
-        try {
-            setUploading(true);
-            const files = event.target.files;
-            if (!files || files.length === 0) throw new Error('No file selected.');
-            
-            const uploadPromises = Array.from(files).map(async file => {
-                const fileExt = file.name.split('.').pop();
-                const fileName = `${uuidv4()}.${fileExt}`;
-                const { error } = await supabase.storage.from('heritage').upload(fileName, file);
-                if (error) throw error;
-                const { data } = supabase.storage.from('heritage').getPublicUrl(fileName);
-                return data.publicUrl;
-            });
-            
-            const newUrls = await Promise.all(uploadPromises);
+    // Fetch by slug, and also get the author's name and slug for the link
+    const { data: site } = await supabase
+        .from('heritage_sites')
+        .select('*, author:profiles(full_name, slug)')
+        .eq('slug', params.slug)
+        .single();
 
-            if (multiple) {
-                setPreviews(prev => [...prev, ...newUrls]);
-                onUploadComplete(newUrls);
-            } else {
-                setPreviews([newUrls[0]]);
-                onUploadComplete(newUrls);
-            }
-        } catch (error: any) { alert(error.message); } 
-        finally { setUploading(false); }
-    };
-    
-    return (
-        <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">{label}</label>
-            <div className="mt-1 flex items-center gap-4">
-                <label htmlFor={name} className="cursor-pointer bg-white py-2 px-4 border border-slate-300 rounded-md text-sm font-semibold text-slate-700 hover:bg-slate-50">{uploading ? 'Uploading...' : 'Choose File(s)'}</label>
-                <input id={name} type="file" onChange={handleUpload} className="hidden" accept="image/*" multiple={multiple} />
-            </div>
-            <div className="mt-4 flex flex-wrap gap-4">
-                {previews.map(url => <img key={url} src={url} alt="Preview" className="w-20 h-20 object-cover rounded-lg" />)}
-            </div>
-        </div>
-    );
-};
+    if (!site) notFound();
 
-export default function SubmitHeritagePage() {
-    const [state, formAction] = useFormState(submitHeritageSite, { error: null });
-    const [coverImageUrl, setCoverImageUrl] = useState('');
-    const [galleryImages, setGalleryImages] = useState<string[]>([]);
+    const galleryImages = [site.cover_image_url, ...(site.gallery_images || [])].filter(Boolean);
+    const author = site.author as any; // Cast for easier access
 
     return (
-        <div className="bg-slate-50 min-h-screen py-24">
-            <div className="container mx-auto max-w-2xl px-4">
-                <div className="bg-white p-8 rounded-2xl shadow-lg border">
-                    <div className="text-center mb-8">
-                        <Landmark className="mx-auto h-12 w-12 text-amber-500 bg-amber-100 p-2 rounded-full" />
-                        <h1 className="text-3xl font-bold mt-4">Add a New Heritage Site</h1>
-                    </div>
-                    <form action={formAction} className="space-y-6">
-                        <input type="hidden" name="cover_image_url" value={coverImageUrl} />
-                        <input type="hidden" name="gallery_images" value={JSON.stringify(galleryImages)} />
-                        
-                        <div><label className="font-medium">Site Name</label><input name="title" required className="w-full mt-1 p-3 border rounded-lg" /></div>
-                        <div><label className="font-medium">Category</label>
-                            <select name="category" required className="w-full mt-1 p-3 border rounded-lg">
-                                <option>Archaeological</option><option>Historical Landmark</option><option>Natural Wonder</option><option>Cultural Practice</option><option>Monument</option>
-                            </select>
-                        </div>
-                         <div><label className="font-medium">Location</label><input name="location" required className="w-full mt-1 p-3 border rounded-lg" /></div>
-                        <div><label className="font-medium">Summary (Short Description)</label><textarea name="summary" rows={3} required className="w-full mt-1 p-3 border rounded-lg"></textarea></div>
-                        <div><label className="font-medium">Full Description</label><textarea name="description" rows={6} className="w-full mt-1 p-3 border rounded-lg"></textarea></div>
-                        
-                        <FileUpload name="cover_image_upload" label="Cover Image (Required)" onUploadComplete={(urls) => setCoverImageUrl(urls[0])} />
-                        <FileUpload name="gallery_upload" label="Image Gallery (Optional)" onUploadComplete={(urls) => setGalleryImages(prev => [...prev, ...urls])} multiple />
-
-                        <SubmitButton />
-                        {state.error && <div className="p-4 bg-red-50 text-red-800 rounded-lg"><AlertTriangle className="inline-block mr-2" />{state.error}</div>}
-                    </form>
+        <div className="bg-white min-h-screen">
+            <div className="container mx-auto max-w-4xl py-24 px-4">
+                <Link href="/heritage" className="inline-flex items-center gap-2 text-slate-600 hover:text-amber-600 mb-8 font-semibold">
+                    <ArrowLeft size={20} />Back to all sites
+                </Link>
+                
+                <div className="w-full h-80 rounded-2xl overflow-hidden shadow-lg mb-8">
+                  <img src={site.cover_image_url} alt={site.title} className="w-full h-full object-cover" />
                 </div>
+
+                <h1 className="text-4xl md:text-5xl font-extrabold text-slate-900 mb-4">{site.title}</h1>
+
+                <div className="flex flex-wrap items-center gap-4 mb-8">
+                    <span className="flex items-center gap-2 bg-slate-100 px-3 py-2 rounded-lg text-sm text-slate-700 font-semibold"><Tag size={16}/>{site.category}</span>
+                    <span className="flex items-center gap-2 bg-slate-100 px-3 py-2 rounded-lg text-sm text-slate-700 font-semibold"><MapPin size={16}/>{site.location}</span>
+                    {author && (
+                         <Link href={`/professionals/${author.slug}`} className="flex items-center gap-2 bg-slate-100 px-3 py-2 rounded-lg text-sm text-slate-700 font-semibold hover:bg-amber-100 hover:text-amber-800">
+                           <User size={16}/>Submitted by {author.full_name}
+                         </Link>
+                    )}
+                </div>
+
+                <div className="prose prose-lg max-w-none text-slate-700 prose-headings:text-slate-800 prose-strong:text-slate-800">
+                    <p className="lead font-semibold text-slate-800">{site.summary}</p>
+                    <div dangerouslySetInnerHTML={{ __html: site.description || '' }} />
+                </div>
+                
+                {galleryImages.length > 1 && (
+                  <div className="mt-12">
+                    <h2 className="text-2xl font-bold text-slate-800 mb-6">Gallery</h2>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                        {galleryImages.slice(1).map((url, index) => (
+                            <div key={index} className="rounded-xl overflow-hidden shadow-md aspect-w-1 aspect-h-1">
+                                <img src={url} alt={`${site.title} gallery image ${index + 1}`} className="w-full h-full object-cover" />
+                            </div>
+                        ))}
+                    </div>
+                  </div>
+                )}
             </div>
         </div>
     );

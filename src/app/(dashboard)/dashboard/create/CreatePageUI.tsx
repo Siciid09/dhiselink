@@ -8,7 +8,6 @@ import { formConfigurations } from './form-config';
 import { createOpportunity } from './actions';
 import { CreateForm } from './CreateForm';
 
-// This map translates icon names from the config into actual components
 const iconMap: Record<string, React.ElementType<LucideProps>> = {
     Briefcase, BookOpen, Handshake, Shield, Heart, Lightbulb, Camera
 };
@@ -28,8 +27,17 @@ interface CreatePageUIProps {
 export default function CreatePageUI({ user, options }: CreatePageUIProps) {
     const [selectedType, setSelectedType] = useState<string | null>(null);
 
-    // --- Chooser Menu View ---
     if (!selectedType) {
+        // If there are no options, show an empty state message.
+        if (options.length === 0) {
+            return (
+                <div className="bg-white p-8 rounded-2xl shadow-sm border text-center">
+                    <h1 className="text-2xl font-bold text-slate-800">No Creation Options Available</h1>
+                    <p className="text-slate-500 mt-2">Your current role does not have permission to create new content.</p>
+                </div>
+            );
+        }
+
         return (
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-white p-8 rounded-2xl shadow-sm border">
                 <div className="text-center">
@@ -47,10 +55,11 @@ export default function CreatePageUI({ user, options }: CreatePageUIProps) {
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: index * 0.05 }}
                                 onClick={() => setSelectedType(opt.type)}
-                                className="group p-6 bg-slate-50 rounded-xl border-2 border-transparent text-left hover:border-sky-500 hover:bg-white transition-all"
+                                // UPDATED: Hover border and icon color to amber theme
+                                className="group p-6 bg-slate-50 rounded-xl border-2 border-transparent text-left hover:border-amber-500 hover:bg-white transition-all"
                             >
                                 <div className="p-3 bg-white rounded-lg border w-fit mb-3">
-                                    <Icon className="h-6 w-6 text-sky-600" />
+                                    <Icon className="h-6 w-6 text-amber-600" />
                                 </div>
                                 <h3 className="font-bold text-slate-800">{opt.title}</h3>
                                 <p className="text-sm text-slate-500">{opt.description}</p>
@@ -62,13 +71,12 @@ export default function CreatePageUI({ user, options }: CreatePageUIProps) {
         );
     }
 
-    // --- Form View ---
     const config = formConfigurations[selectedType];
     if (!config) {
         return (
             <div className="text-center p-10 bg-white rounded-lg shadow-sm border">
                 <p className="text-red-600 font-semibold">Error: Form configuration not found.</p>
-                <button onClick={() => setSelectedType(null)} className="mt-4 text-sm font-semibold text-sky-600">
+                <button onClick={() => setSelectedType(null)} className="mt-4 text-sm font-semibold text-amber-600">
                     &larr; Go Back
                 </button>
             </div>
