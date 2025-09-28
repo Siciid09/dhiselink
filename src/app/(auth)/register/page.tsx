@@ -1,9 +1,9 @@
 "use client";
 
-import { Suspense } from 'react';
+import { Suspense, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useFormStatus } from 'react-dom';
-import { User, AtSign, Lock, AlertTriangle, CheckCircle, Loader2 } from 'lucide-react';
+import { User, AtSign, Lock, AlertTriangle, CheckCircle, Loader2, Eye, EyeOff } from 'lucide-react';
 import Link from 'next/link';
 import { signUp } from './actions';
 
@@ -19,6 +19,9 @@ function SubmitButton() {
 function RegisterForm() {
     const searchParams = useSearchParams();
     const message = searchParams.get('message');
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
 
     return (
         <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4">
@@ -31,7 +34,34 @@ function RegisterForm() {
                     <form action={signUp} className="space-y-5">
                         <div className="relative"><User className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" /><input name="fullName" placeholder="Full Name" required className="w-full h-12 pl-12 pr-4 rounded-lg bg-slate-50 border focus:ring-2 focus:ring-amber-500" /></div>
                         <div className="relative"><AtSign className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" /><input name="email" type="email" placeholder="Email Address" required className="w-full h-12 pl-12 pr-4 rounded-lg bg-slate-50 border focus:ring-2 focus:ring-amber-500" /></div>
-                        <div className="relative"><Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" /><input name="password" type="password" placeholder="Password (min. 6 characters)" required minLength={6} className="w-full h-12 pl-12 pr-4 rounded-lg bg-slate-50 border focus:ring-2 focus:ring-amber-500" /></div>
+                        <div className="relative">
+                            <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
+                            <input 
+                                name="password" 
+                                type={showPassword ? 'text' : 'password'} 
+                                placeholder="Password (min. 6 characters)" 
+                                required 
+                                minLength={6} 
+                                className="w-full h-12 pl-12 pr-12 rounded-lg bg-slate-50 border focus:ring-2 focus:ring-amber-500" 
+                            />
+                            <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+                                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                            </button>
+                        </div>
+                         <div className="relative">
+                            <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
+                            <input 
+                                name="confirmPassword" 
+                                type={showConfirmPassword ? 'text' : 'password'} 
+                                placeholder="Re-enter Password" 
+                                required 
+                                minLength={6} 
+                                className="w-full h-12 pl-12 pr-12 rounded-lg bg-slate-50 border focus:ring-2 focus:ring-amber-500" 
+                            />
+                            <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+                                {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                            </button>
+                        </div>
                         <SubmitButton />
                     </form>
 
