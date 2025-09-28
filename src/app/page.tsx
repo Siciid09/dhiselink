@@ -274,8 +274,8 @@ const CTASection: FC = () => (
                 <motion.h2 initial={{opacity:0, y:20}} whileInView={{opacity:1, y:0}} viewport={{ once: true }} transition={{delay:0.2}} className="text-4xl md:text-5xl font-extrabold text-white mb-4"> Join the Movement to Build a Better Somaliland </motion.h2>
                 <motion.p initial={{opacity:0, y:20}} whileInView={{opacity:1, y:0}} viewport={{ once: true }} transition={{delay:0.3}} className="text-lg text-gray-300 max-w-xl mx-auto mb-8"> Register today and become part of the development revolution. </motion.p>
                 <motion.div initial={{opacity:0, y:20}} whileInView={{opacity:1, y:0}} viewport={{ once: true }} transition={{delay:0.4}} className="flex flex-col sm:flex-row justify-center items-center gap-4">
-                    <motion.a whileHover={{ scale: 1.05, y: -2 }} href="/signup" className="w-full sm:w-auto bg-white text-gray-900 font-bold px-8 py-4 rounded-xl shadow-lg"> Join as a Professional </motion.a>
-                    <motion.a whileHover={{ scale: 1.05, y: -2 }} href="/signup" className="w-full sm:w-auto bg-transparent border-2 border-gray-500 text-white font-bold px-8 py-4 rounded-xl"> Register an Institution </motion.a>
+                    <motion.a whileHover={{ scale: 1.05, y: -2 }} href="/register" className="w-full sm:w-auto bg-white text-gray-900 font-bold px-8 py-4 rounded-xl shadow-lg"> Join as a Professional </motion.a>
+                    <motion.a whileHover={{ scale: 1.05, y: -2 }} href="/register" className="w-full sm:w-auto bg-transparent border-2 border-gray-500 text-white font-bold px-8 py-4 rounded-xl"> Register an Institution </motion.a>
                 </motion.div>
             </div>
         </div>

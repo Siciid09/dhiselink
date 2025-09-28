@@ -39,6 +39,7 @@ const navItems: NavItem[] = [
       { name: 'Universities', href: '/organizations?type=University', description: 'Academic and research institutions' },
       { name: 'NGOs', href: '/organizations?type=NGO', description: 'Non-governmental organizations' },
       { name: 'Government', href: '/organizations?type=Government', description: 'Public sector and state bodies' },
+      { name: 'Other', href: '/organizations?type=Other', description: 'Miscellaneous and other bodies' },
     ],
   },
   {
